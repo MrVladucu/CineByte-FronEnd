@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="6" fill="#0a0a0a"/>
+  <rect width="32" height="32" rx="6" fill="#e51b23" opacity="0.15"/>
+  
+  <!-- Tira de película izquierda -->
+  <rect x="3" y="6" width="4" height="20" rx="1" fill="#e51b23"/>
+  <rect x="3" y="8" width="4" height="2" fill="#0a0a0a" opacity="0.6"/>
+  <rect x="3" y="12" width="4" height="2" fill="#0a0a0a" opacity="0.6"/>
+  <rect x="3" y="16" width="4" height="2" fill="#0a0a0a" opacity="0.6"/>
+  <rect x="3" y="20" width="4" height="2" fill="#0a0a0a" opacity="0.6"/>
+  
+  <!-- Tira de película derecha -->
+  <rect x="25" y="6" width="4" height="20" rx="1" fill="#e51b23"/>
+  <rect x="25" y="8" width="4" height="2" fill="#0a0a0a" opacity="0.6"/>
+  <rect x="25" y="12" width="4" height="2" fill="#0a0a0a" opacity="0.6"/>
+  <rect x="25" y="16" width="4" height="2" fill="#0a0a0a" opacity="0.6"/>
+  <rect x="25" y="20" width="4" height="2" fill="#0a0a0a" opacity="0.6"/>
+
+  <!-- Letra C -->
+  <text x="16" y="22" font-family="Arial Black, sans-serif" font-size="14" font-weight="900" fill="white" text-anchor="middle">C</text>
+</svg>

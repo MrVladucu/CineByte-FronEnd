@@ -1,0 +1,53 @@
+import { Link } from 'react-router-dom'
+
+export default function MovieCard({ movie }) {
+  const posterUrl = movie.poster_path
+    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+    : null
+
+  return (
+    <Link to={`/movie/${movie.id}`} className="group block">
+      <div style={{ borderRadius: '6px', overflow: 'hidden', background: 'var(--bg-card)', border: '1px solid var(--border)' }}
+        className="relative aspect-[2/3] transition-transform duration-300 group-hover:scale-[1.03]">
+
+        {posterUrl ? (
+          <img
+            src={posterUrl}
+            alt={movie.title}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center"
+            style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+            Sin imagen
+          </div>
+        )}
+
+        {/* Overlay on hover */}
+        <div style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 60%)' }}
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
+          <p style={{ fontFamily: 'Bebas Neue', fontSize: '1rem', letterSpacing: '0.05em' }}
+            className="text-white leading-tight">
+            {movie.title}
+          </p>
+          {movie.vote_average > 0 && (
+            <p style={{ color: 'var(--accent)', fontSize: '0.8rem', fontWeight: 500 }}>
+              ★ {movie.vote_average.toFixed(1)}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-2 px-1">
+        <p style={{ fontSize: '0.8rem', fontWeight: 500 }}
+          className="text-white truncate">
+          {movie.title}
+        </p>
+        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+          {movie.release_date?.split('-')[0]}
+        </p>
+      </div>
+    </Link>
+  )
+}

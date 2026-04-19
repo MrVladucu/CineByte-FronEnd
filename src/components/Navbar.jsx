@@ -1,0 +1,221 @@
+import { useState, useRef, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import { useQuery } from '@tanstack/react-query'
+import { tmdbService } from '../services/tmdb'
+
+export default function Navbar() {
+  const { user, signOut } = useAuth()
+  const navigate = useNavigate()
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchFocused, setSearchFocused] = useState(false)
+  const [showDropdown, setShowDropdown] = useState(false)
+  const searchRef = useRef(null)
+
+  const { data: searchResults } = useQuery({
+    queryKey: ['navbar-search', searchQuery],
+    queryFn: () => tmdbService.searchMovies(searchQuery, 1),
+    enabled: searchQuery.trim().length >= 2,
+  })
+
+  const movies = searchResults?.data?.results?.slice(0, 6) || []
+
+  useEffect(() => {
+    if (searchQuery.trim().length >= 2 && searchFocused) {
+      setShowDropdown(true)
+    } else {
+      setShowDropdown(false)
+    }
+  }, [searchQuery, searchFocused])
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setShowDropdown(false)
+        setSearchFocused(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleSearch = (e) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+      setSearchQuery('')
+      setShowDropdown(false)
+    }
+  }
+
+  const handleMovieClick = (movieId) => {
+    navigate(`/movie/${movieId}`)
+    setSearchQuery('')
+    setShowDropdown(false)
+  }
+
+  const handleSignOut = async () => {
+    await signOut()
+    navigate('/login')
+  }
+
+  return (
+    <nav style={{
+      borderBottom: '1px solid var(--border)',
+      background: 'rgba(10,10,10,0.95)',
+      backdropFilter: 'blur(10px)',
+      position: 'fixed',
+      top: 0, left: 0, right: 0,
+      zIndex: 50,
+    }}>
+      <div style={{
+        width: '100%',
+        maxWidth: '1280px',
+        margin: '0 auto',
+        padding: '0 2rem',
+        height: '64px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '1.5rem',
+      }}>
+
+        {/* Logo */}
+        <Link to="/" style={{ flexShrink: 0, textDecoration: 'none' }}>
+          <span style={{ fontFamily: 'Bebas Neue', fontSize: '1.8rem', color: 'var(--accent)', letterSpacing: '0.1em' }}>
+            CINE<span style={{ color: 'var(--text)' }}>BYTE</span>
+          </span>
+        </Link>
+
+        {/* Search */}
+        <div ref={searchRef} style={{ flex: 1, maxWidth: '480px', position: 'relative' }}>
+          <form onSubmit={handleSearch}>
+            <input
+              type="text"
+              placeholder="Buscar películas..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setSearchFocused(true)}
+              style={{
+                width: '100%',
+                background: 'var(--bg-elevated)',
+                border: `1px solid ${searchFocused ? 'var(--accent)' : 'var(--border)'}`,
+                color: 'var(--text)',
+                borderRadius: showDropdown ? '4px 4px 0 0' : '4px',
+                padding: '0.5rem 1rem',
+                fontSize: '0.85rem',
+                outline: 'none',
+                transition: 'border-color 0.2s, box-shadow 0.2s',
+                boxShadow: searchFocused ? '0 0 0 2px rgba(229,27,35,0.2)' : 'none',
+              }}
+            />
+          </form>
+
+          {/* Dropdown */}
+          {showDropdown && movies.length > 0 && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0, right: 0,
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--accent)',
+              borderTop: 'none',
+              borderRadius: '0 0 6px 6px',
+              overflow: 'hidden',
+              zIndex: 100,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
+            }}>
+              {movies.map(movie => (
+                <div
+                  key={movie.id}
+                  onClick={() => handleMovieClick(movie.id)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.6rem 1rem',
+                    cursor: 'pointer',
+                    borderBottom: '1px solid var(--border)',
+                    transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(229,27,35,0.1)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  {movie.poster_path ? (
+                    <img
+                      src={`https://image.tmdb.org/t/p/w92${movie.poster_path}`}
+                      alt=""
+                      style={{ width: '32px', height: '48px', objectFit: 'cover', borderRadius: '3px', flexShrink: 0 }}
+                    />
+                  ) : (
+                    <div style={{ width: '32px', height: '48px', background: 'var(--border)', borderRadius: '3px', flexShrink: 0 }} />
+                  )}
+                  <div style={{ overflow: 'hidden' }}>
+                    <p style={{ fontSize: '0.85rem', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {movie.title}
+                    </p>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      {movie.release_date?.split('-')[0]}
+                      {movie.vote_average > 0 && ` · ★ ${movie.vote_average.toFixed(1)}`}
+                    </p>
+                  </div>
+                </div>
+              ))}
+
+              {/* Ver todos */}
+              <div
+                onClick={handleSearch}
+                style={{
+                  padding: '0.6rem 1rem',
+                  fontSize: '0.8rem',
+                  color: 'var(--accent)',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  letterSpacing: '0.05em',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(229,27,35,0.1)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                VER TODOS LOS RESULTADOS →
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Nav links */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexShrink: 0 }}>
+          <Link to="/" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', letterSpacing: '0.1em', fontWeight: 500, textDecoration: 'none' }}>
+            INICIO
+          </Link>
+          <Link to="/search" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', letterSpacing: '0.1em', fontWeight: 500, textDecoration: 'none' }}>
+            EXPLORAR
+          </Link>
+
+          {user && (
+            <>
+              <Link to={`/profile/${user.id}`} style={{ color: 'var(--text-muted)', fontSize: '0.85rem', letterSpacing: '0.1em', fontWeight: 500, textDecoration: 'none' }}>
+                PERFIL
+              </Link>
+              <button
+                onClick={handleSignOut}
+                style={{
+                  background: 'var(--accent)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '0.4rem 1rem',
+                  fontSize: '0.8rem',
+                  letterSpacing: '0.1em',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}>
+                SALIR
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </nav>
+  )
+}
