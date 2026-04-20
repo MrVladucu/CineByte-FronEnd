@@ -37,7 +37,7 @@ export default function Movie() {
         .select('id, list_movies(tmdb_movie_id)')
         .eq('user_id', user.id)
         .eq('name', 'Watchlist')
-        .single()
+        .maybeSingle()
       return data
     },
     enabled: !!user,
