@@ -10,41 +10,54 @@ export default function ReviewModal({ movie, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (rating === 0) {
-      setError('Selecciona una puntuación')
-      return
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        if (rating === 0) {
+            setError('Selecciona una puntuación')
+            return
+        }
+        setLoading(true)
+        setError('')
+
+        // Gemini para moderar las reviews
+        if (content.trim()) {
+            try {
+                console.log('Llamando a moderación con texto:', content.trim()) // ← añade esto
+                const modResponse = await api.post('/api/moderation/check', { text: content.trim() })
+                console.log('Respuesta moderación:', modResponse.data) // ← y esto
+                if (!modResponse.data.approved) {
+                    setError(`Reseña rechazada: ${modResponse.data.reason}`)
+                    setLoading(false)
+                    return
+                }
+            } catch (e) {
+                console.error('Error moderación:', e) // ← y esto
+            }
+        }
+
+        const { error: supabaseError } = await supabase
+            .from('reviews')
+            .insert({
+                user_id: user.id,
+                tmdb_movie_id: movie.id,
+                rating,
+                content: content.trim() || null,
+            })
+
+        if (supabaseError) {
+            setError(supabaseError.message)
+            setLoading(false)
+            return
+        }
+
+        try {
+            await api.post('/api/gamification/review', { userId: user.id })
+        } catch (e) { /* vacios */ }
+
+        setLoading(false)
+        onSuccess?.()
+        onClose()
     }
-    setLoading(true)
-    setError('')
-
-    const { error: supabaseError } = await supabase
-      .from('reviews')
-      .insert({
-        user_id: user.id,
-        tmdb_movie_id: movie.id,
-        rating,
-        content: content.trim() || null,
-      })
-
-    if (supabaseError) {
-      setError(supabaseError.message)
-      setLoading(false)
-      return
-    }
-
-    // Notificar al backend para gamificación
-    try {
-      await api.post('/api/gamification/review', { userId: user.id })
-    } catch (e) {
-      // No bloqueamos si falla la gamificación
-    }
-
-    setLoading(false)
-    onSuccess?.()
-    onClose()
-  }
 
   return (
     <div style={{
