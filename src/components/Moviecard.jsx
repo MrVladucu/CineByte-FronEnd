@@ -1,19 +1,23 @@
 import { Link } from 'react-router-dom'
 
-export default function MovieCard({ movie }) {
+export default function MovieCard({ movie, type = 'movie' }) {
   const posterUrl = movie.poster_path
     ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
     : null
 
+  const title = movie.title || movie.name;
+  const releaseDate = movie.release_date || movie.first_air_date;
+  const mediaType = movie.media_type || type;
+
   return (
-    <Link to={`/movie/${movie.id}`} className="group block">
+    <Link to={`/${mediaType}/${movie.id}`} className="group block">
       <div style={{ borderRadius: '6px', overflow: 'hidden', background: 'var(--bg-card)', border: '1px solid var(--border)' }}
         className="relative aspect-[2/3] transition-transform duration-300 group-hover:scale-[1.03]">
 
         {posterUrl ? (
           <img
             src={posterUrl}
-            alt={movie.title}
+            alt={title}
             className="w-full h-full object-cover"
             loading="lazy"
           />
@@ -29,7 +33,7 @@ export default function MovieCard({ movie }) {
           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
           <p style={{ fontFamily: 'Bebas Neue', fontSize: '1rem', letterSpacing: '0.05em' }}
             className="text-white leading-tight">
-            {movie.title}
+            {title}
           </p>
           {movie.vote_average > 0 && (
             <p style={{ color: 'var(--accent)', fontSize: '0.8rem', fontWeight: 500 }}>
@@ -40,12 +44,12 @@ export default function MovieCard({ movie }) {
       </div>
 
       <div className="mt-2 px-1">
-        <p style={{ fontSize: '0.8rem', fontWeight: 500 }}
-          className="text-white truncate">
-          {movie.title}
+        <p style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--text)' }}
+          className="truncate transition-colors duration-300 group-hover:text-[var(--accent)]">
+          {title}
         </p>
         <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-          {movie.release_date?.split('-')[0]}
+          {releaseDate?.split('-')[0]}
         </p>
       </div>
     </Link>

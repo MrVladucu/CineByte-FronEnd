@@ -7,13 +7,13 @@ import { Carousel } from 'primereact/carousel'
 import { Skeleton } from 'primereact/skeleton'
 import { Button } from 'primereact/button'
 
-function MovieSection({ title, queryKey, queryFn }) {
+function MovieSection({ title, queryKey, queryFn, type = 'movie' }) {
   const { data, isLoading } = useQuery({ queryKey, queryFn })
   const movies = data?.data?.results || []
 
   return (
     <section style={{ marginBottom: '3rem' }}>
-      <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.6rem', letterSpacing: '0.08em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.6rem', letterSpacing: '0.08em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text)' }}>
         <span style={{ display: 'inline-block', width: '4px', height: '1.4rem', background: 'var(--accent)', borderRadius: '2px' }} />
         {title}
       </h2>
@@ -26,7 +26,7 @@ function MovieSection({ title, queryKey, queryFn }) {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '1rem' }}>
           {movies.slice(0, 12).map(movie => (
-            <MovieCard key={movie.id} movie={movie} />
+            <MovieCard key={movie.id} movie={movie} type={type} />
           ))}
         </div>
       )}
@@ -48,14 +48,17 @@ export default function Home() {
       ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
       : null
 
+    const title = movie.title || movie.name;
+    const mediaType = movie.media_type || 'movie';
+
     return (
       <div style={{ position: 'relative', height: '70vh', overflow: 'hidden' }}>
         {backdropUrl && (
-          <img src={backdropUrl} alt={movie.title} style={{ opacity: 0.4, width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src={backdropUrl} alt={title} style={{ opacity: 0.4, width: '100%', height: '100%', objectFit: 'cover' }} />
         )}
         <div style={{
           position: 'absolute', inset: 0,
-          background: 'linear-gradient(to right, rgba(10,10,10,1) 30%, transparent 70%), linear-gradient(to top, rgba(10,10,10,1) 0%, transparent 50%)'
+          background: 'linear-gradient(to right, var(--bg) 30%, transparent 70%), linear-gradient(to top, var(--bg) 0%, transparent 50%)'
         }} />
 
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end' }}>
@@ -64,14 +67,14 @@ export default function Home() {
               TENDENCIA ESTA SEMANA
             </p>
             <h1 style={{ fontFamily: 'Bebas Neue', fontSize: 'clamp(2.5rem, 6vw, 5rem)', lineHeight: 1, marginBottom: '1rem', maxWidth: '600px' }}>
-              {movie.title}
+              {title}
             </h1>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1.5rem', maxWidth: '480px' }}>
               {movie.overview?.slice(0, 180)}...
             </p>
             <Button
               label="VER DETALLES"
-              onClick={() => navigate(`/movie/${movie.id}`)}
+              onClick={() => navigate(`/${mediaType}/${movie.id}`)}
               style={{
                 background: 'var(--accent)',
                 borderColor: 'var(--accent)',
@@ -112,8 +115,9 @@ export default function Home() {
 
       {/* Secciones */}
       <div style={{ width: '100%', maxWidth: '1280px', margin: '0 auto', padding: '2.5rem 2rem' }}>
-        <MovieSection title="Tendencias de la semana" queryKey={['trending']} queryFn={tmdbService.getTrendingMovies} />
-        <MovieSection title="Populares ahora" queryKey={['popular']} queryFn={() => tmdbService.getPopularMovies(1)} />
+        <MovieSection title="Películas en tendencia" queryKey={['trending-movies']} queryFn={tmdbService.getTrendingMovies} type="movie" />
+        <MovieSection title="Series en tendencia" queryKey={['trending-tv']} queryFn={tmdbService.getTrendingTv} type="tv" />
+        <MovieSection title="Populares ahora" queryKey={['popular-movies']} queryFn={() => tmdbService.getPopularMovies(1)} type="movie" />
       </div>
 
       <style>{`

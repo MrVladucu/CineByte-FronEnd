@@ -11,7 +11,7 @@ import { Tag } from 'primereact/tag'
 import { Skeleton } from 'primereact/skeleton'
 import { Rating } from 'primereact/rating'
 
-export default function Movie() {
+export default function Movie({ type = 'movie' }) {
     const { id } = useParams()
     const navigate = useNavigate()
     const { user } = useAuth()
@@ -19,18 +19,18 @@ export default function Movie() {
     const [showReviewModal, setShowReviewModal] = useState(false)
 
     const { data: movieData, isLoading: movieLoading } = useQuery({
-        queryKey: ['movie', id],
-        queryFn: () => tmdbService.getMovieDetails(id),
+        queryKey: [type, id],
+        queryFn: () => type === 'tv' ? tmdbService.getTvDetails(id) : tmdbService.getMovieDetails(id),
     })
 
     const { data: creditsData } = useQuery({
-        queryKey: ['credits', id],
-        queryFn: () => tmdbService.getMovieCredits(id),
+        queryKey: [`${type}-credits`, id],
+        queryFn: () => type === 'tv' ? tmdbService.getTvCredits(id) : tmdbService.getMovieCredits(id),
     })
 
     const { data: similarData } = useQuery({
-        queryKey: ['similar', id],
-        queryFn: () => tmdbService.getSimilarMovies(id),
+        queryKey: [`${type}-similar`, id],
+        queryFn: () => type === 'tv' ? tmdbService.getSimilarTv(id) : tmdbService.getSimilarMovies(id),
     })
 
     const { data: watchlistData } = useQuery({
@@ -159,7 +159,7 @@ export default function Movie() {
     const movie = movieData?.data
     const credits = creditsData?.data
     const similar = similarData?.data?.results?.slice(0, 6) || []
-    const director = credits?.crew?.find(p => p.job === 'Director')
+    const director = type === 'tv' ? movie?.created_by?.[0] : credits?.crew?.find(p => p.job === 'Director')
     const cast = credits?.cast?.slice(0, 8) || []
 
     if (movieLoading) {
@@ -191,6 +191,10 @@ export default function Movie() {
         ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
         : null
 
+    const title = movie.title || movie.name;
+    const releaseDate = movie.release_date || movie.first_air_date;
+    const runtime = movie.runtime || (movie.episode_run_time && movie.episode_run_time[0]);
+
     return (
         <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
             <Navbar />
@@ -198,7 +202,7 @@ export default function Movie() {
             {/* Hero backdrop */}
             <div style={{ position: 'relative', height: '60vh', marginTop: '64px', overflow: 'hidden' }}>
                 {backdropUrl && (
-                    <img src={backdropUrl} alt={movie.title} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.3 }} />
+                    <img src={backdropUrl} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.3 }} />
                 )}
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, var(--bg) 20%, transparent 80%)' }} />
             </div>
@@ -210,7 +214,7 @@ export default function Movie() {
                     {/* Poster */}
                     {posterUrl && (
                         <div style={{ flexShrink: 0, width: '220px', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.8)', border: '1px solid var(--border)' }}>
-                            <img src={posterUrl} alt={movie.title} style={{ width: '100%' }} />
+                            <img src={posterUrl} alt={title} style={{ width: '100%' }} />
                         </div>
                     )}
 
@@ -223,7 +227,7 @@ export default function Movie() {
                         </div>
 
                         <h1 style={{ fontFamily: 'Bebas Neue', fontSize: 'clamp(2.5rem, 5vw, 4rem)', lineHeight: 1, marginBottom: '0.5rem' }}>
-                            {movie.title}
+                            {title}
                         </h1>
 
                         <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
@@ -233,13 +237,13 @@ export default function Movie() {
                                     <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '1.1rem' }}>{movie.vote_average.toFixed(1)}</span>
                                 </div>
                             )}
-                            <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{movie.release_date?.split('-')[0]}</span>
-                            {movie.runtime > 0 && (
-                                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{Math.floor(movie.runtime / 60)}h {movie.runtime % 60}m</span>
+                            {releaseDate && <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{releaseDate.split('-')[0]}</span>}
+                            {runtime > 0 && (
+                                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{Math.floor(runtime / 60)}h {runtime % 60}m</span>
                             )}
                             {director && (
                                 <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                                    Dir. <span style={{ color: 'var(--text)' }}>{director.name}</span>
+                                    {type === 'tv' ? 'Creador ' : 'Dir. '} <span style={{ color: 'var(--text)' }}>{director.name}</span>
                                 </span>
                             )}
                         </div>
@@ -316,7 +320,7 @@ export default function Movie() {
                     {!reviewsData?.length ? (
                         <div style={{ background: 'var(--bg-elevated)', borderRadius: '8px', padding: '3rem', textAlign: 'center', border: '1px dashed var(--border)' }}>
                             <i className="pi pi-comments" style={{ fontSize: '2rem', color: 'var(--text-muted)', marginBottom: '1rem', display: 'block' }}></i>
-                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Sé el primero en reseñar esta película.</p>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Sé el primero en reseñar esta {type === 'tv' ? 'serie' : 'película'}.</p>
                         </div>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -386,16 +390,16 @@ export default function Movie() {
                             RECOMENDACIONES SIMILARES
                         </h2>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1.5rem' }}>
-                            {similar.map(movie => (
-                                <div key={movie.id} onClick={() => navigate(`/movie/${movie.id}`)} style={{ cursor: 'pointer' }} className="group">
+                            {similar.map(sim => (
+                                <div key={sim.id} onClick={() => navigate(`/${type}/${sim.id}`)} style={{ cursor: 'pointer' }} className="group">
                                     <div style={{ borderRadius: '8px', overflow: 'hidden', background: 'var(--bg-card)', border: '1px solid var(--border)', aspectRatio: '2/3' }} className="group-hover:scale-105 transition-transform duration-300">
-                                        {movie.poster_path
-                                            ? <img src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`} alt={movie.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+                                        {sim.poster_path
+                                            ? <img src={`https://image.tmdb.org/t/p/w300${sim.poster_path}`} alt={sim.title || sim.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
                                             : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.75rem' }}>Sin imagen</div>
                                         }
                                     </div>
-                                    <p style={{ fontSize: '0.85rem', marginTop: '0.75rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{movie.title}</p>
-                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{movie.release_date?.split('-')[0]}</p>
+                                    <p style={{ fontSize: '0.85rem', marginTop: '0.75rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sim.title || sim.name}</p>
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{(sim.release_date || sim.first_air_date)?.split('-')[0]}</p>
                                 </div>
                             ))}
                         </div>
@@ -405,7 +409,7 @@ export default function Movie() {
 
             {showReviewModal && (
                 <ReviewModal
-                    movie={movie}
+                    movie={{ ...movie, title: title }}
                     onClose={() => setShowReviewModal(false)}
                     onSuccess={() => {
                         refetchReviews()

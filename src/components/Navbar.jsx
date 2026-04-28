@@ -3,9 +3,12 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useQuery } from '@tanstack/react-query'
 import { tmdbService } from '../services/tmdb'
+import { useTheme } from '../context/ThemeContext'
+import { Button } from 'primereact/button'
 
 export default function Navbar() {
   const { user, signOut } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
   const [searchFocused, setSearchFocused] = useState(false)
@@ -48,8 +51,8 @@ export default function Navbar() {
     }
   }
 
-  const handleMovieClick = (movieId) => {
-    navigate(`/movie/${movieId}`)
+  const handleMovieClick = (movieId, mediaType = 'movie') => {
+    navigate(`/${mediaType}/${movieId}`)
     setSearchQuery('')
     setShowDropdown(false)
   }
@@ -62,11 +65,12 @@ export default function Navbar() {
   return (
     <nav style={{
       borderBottom: '1px solid var(--border)',
-      background: 'rgba(10,10,10,0.95)',
+      background: theme === 'light' ? 'rgba(248,249,250,0.95)' : 'rgba(10,10,10,0.95)',
       backdropFilter: 'blur(10px)',
       position: 'fixed',
       top: 0, left: 0, right: 0,
       zIndex: 50,
+      transition: 'background-color 0.3s, border-color 0.3s'
     }}>
       <div style={{
         width: '100%',
@@ -105,7 +109,7 @@ export default function Navbar() {
                 padding: '0.5rem 1rem',
                 fontSize: '0.85rem',
                 outline: 'none',
-                transition: 'border-color 0.2s, box-shadow 0.2s',
+                transition: 'border-color 0.2s, box-shadow 0.2s, background-color 0.3s, color 0.3s',
                 boxShadow: searchFocused ? '0 0 0 2px rgba(229,27,35,0.2)' : 'none',
               }}
             />
@@ -124,11 +128,17 @@ export default function Navbar() {
               overflow: 'hidden',
               zIndex: 100,
               boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
+              transition: 'background-color 0.3s'
             }}>
-              {movies.map(movie => (
+              {movies.map(movie => {
+                const title = movie.title || movie.name;
+                const releaseDate = movie.release_date || movie.first_air_date;
+                const mediaType = movie.media_type || 'movie';
+
+                return (
                 <div
                   key={movie.id}
-                  onClick={() => handleMovieClick(movie.id)}
+                  onClick={() => handleMovieClick(movie.id, mediaType)}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -136,7 +146,7 @@ export default function Navbar() {
                     padding: '0.6rem 1rem',
                     cursor: 'pointer',
                     borderBottom: '1px solid var(--border)',
-                    transition: 'background 0.15s',
+                    transition: 'background 0.15s, border-color 0.3s',
                   }}
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(229,27,35,0.1)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
@@ -148,19 +158,19 @@ export default function Navbar() {
                       style={{ width: '32px', height: '48px', objectFit: 'cover', borderRadius: '3px', flexShrink: 0 }}
                     />
                   ) : (
-                    <div style={{ width: '32px', height: '48px', background: 'var(--border)', borderRadius: '3px', flexShrink: 0 }} />
+                    <div style={{ width: '32px', height: '48px', background: 'var(--border)', borderRadius: '3px', flexShrink: 0, transition: 'background-color 0.3s' }} />
                   )}
                   <div style={{ overflow: 'hidden' }}>
-                    <p style={{ fontSize: '0.85rem', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {movie.title}
+                    <p style={{ fontSize: '0.85rem', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text)', transition: 'color 0.3s' }}>
+                      {title}
                     </p>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      {movie.release_date?.split('-')[0]}
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', transition: 'color 0.3s' }}>
+                      {releaseDate?.split('-')[0]}
                       {movie.vote_average > 0 && ` · ★ ${movie.vote_average.toFixed(1)}`}
                     </p>
                   </div>
                 </div>
-              ))}
+              )})}
 
               {/* Ver todos */}
               <div
@@ -185,16 +195,25 @@ export default function Navbar() {
 
         {/* Nav links */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexShrink: 0 }}>
-          <Link to="/" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', letterSpacing: '0.1em', fontWeight: 500, textDecoration: 'none' }}>
+          <Button 
+            icon={theme === 'dark' ? 'pi pi-sun' : 'pi pi-moon'} 
+            rounded 
+            text 
+            aria-label="Toggle Theme" 
+            onClick={toggleTheme}
+            style={{ color: 'var(--text-muted)', width: '2.5rem', height: '2.5rem' }}
+          />
+
+          <Link to="/" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', letterSpacing: '0.1em', fontWeight: 500, textDecoration: 'none', transition: 'color 0.3s' }}>
             INICIO
           </Link>
-          <Link to="/search" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', letterSpacing: '0.1em', fontWeight: 500, textDecoration: 'none' }}>
+          <Link to="/search" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', letterSpacing: '0.1em', fontWeight: 500, textDecoration: 'none', transition: 'color 0.3s' }}>
             EXPLORAR
           </Link>
 
           {user && (
             <>
-              <Link to={`/profile/${user.id}`} style={{ color: 'var(--text-muted)', fontSize: '0.85rem', letterSpacing: '0.1em', fontWeight: 500, textDecoration: 'none' }}>
+              <Link to={`/profile/${user.id}`} style={{ color: 'var(--text-muted)', fontSize: '0.85rem', letterSpacing: '0.1em', fontWeight: 500, textDecoration: 'none', transition: 'color 0.3s' }}>
                 PERFIL
               </Link>
               <button
@@ -209,6 +228,7 @@ export default function Navbar() {
                   letterSpacing: '0.1em',
                   fontWeight: 500,
                   cursor: 'pointer',
+                  transition: 'background-color 0.3s'
                 }}>
                 SALIR
               </button>

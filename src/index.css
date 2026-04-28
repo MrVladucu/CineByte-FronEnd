@@ -11,6 +11,17 @@
   --border: #222222;
 }
 
+:root[data-theme='light'] {
+  --bg: #f8f9fa;
+  --bg-card: #ffffff;
+  --bg-elevated: #f3f4f6;
+  --accent: #e51b23;
+  --accent-hover: #cc151b;
+  --text: #1a1a1a;
+  --text-muted: #6c757d;
+  --border: #e5e7eb;
+}
+
 * {
   margin: 0;
   padding: 0;

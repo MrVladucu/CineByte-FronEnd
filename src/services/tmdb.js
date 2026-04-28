@@ -24,4 +24,16 @@ export const tmdbService = {
 
   discoverMovies: (genreId, sortBy, page = 1) =>
     api.get(`/api/tmdb/discover`, { params: { genreId, sortBy, page } }),
+
+  getTrendingTv: () =>
+    api.get(`/api/tmdb/tv/trending`),
+
+  getTvDetails: (id) =>
+    api.get(`/api/tmdb/tv/${id}`),
+
+  getTvCredits: (id) =>
+    api.get(`/api/tmdb/tv/${id}/credits`),
+
+  getSimilarTv: (id) =>
+    api.get(`/api/tmdb/tv/${id}/similar`),
 }
