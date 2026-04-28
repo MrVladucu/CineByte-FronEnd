@@ -22,16 +22,19 @@ export default function ReviewModal({ movie, onClose, onSuccess }) {
         // Gemini para moderar las reviews
         if (content.trim()) {
             try {
-                console.log('Llamando a moderación con texto:', content.trim()) // ← añade esto
+                console.log('Llamando a moderación con texto:', content.trim())
                 const modResponse = await api.post('/api/moderation/check', { text: content.trim() })
-                console.log('Respuesta moderación:', modResponse.data) // ← y esto
+                console.log('Respuesta moderación:', modResponse.data)
                 if (!modResponse.data.approved) {
                     setError(`Reseña rechazada: ${modResponse.data.reason}`)
                     setLoading(false)
                     return
                 }
-            } catch (e) {
-                console.error('Error moderación:', e) // ← y esto
+            } catch (err) {
+                console.error('Error moderación:', err)
+                setError('Error al verificar la reseña. Por favor, inténtalo de nuevo más tarde.')
+                setLoading(false)
+                return
             }
         }
 
