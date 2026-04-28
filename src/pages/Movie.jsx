@@ -6,6 +6,10 @@ import { useAuth } from '../context/AuthContext'
 import Navbar from '../components/Navbar'
 import ReviewModal from '../components/ReviewModal'
 import { tmdbService } from '../services/tmdb'
+import { Button } from 'primereact/button'
+import { Tag } from 'primereact/tag'
+import { Skeleton } from 'primereact/skeleton'
+import { Rating } from 'primereact/rating'
 
 export default function Movie() {
     const { id } = useParams()
@@ -160,9 +164,19 @@ export default function Movie() {
 
     if (movieLoading) {
         return (
-            <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
                 <Navbar />
-                <div style={{ color: 'var(--text-muted)' }}>Cargando...</div>
+                <div style={{ width: '100%', maxWidth: '1280px', margin: '64px auto 0 auto', padding: '2rem' }}>
+                    <Skeleton width="100%" height="40vh" borderRadius="12px" />
+                    <div style={{ display: 'flex', gap: '2rem', marginTop: '2rem' }}>
+                        <Skeleton width="220px" height="330px" borderRadius="8px" />
+                        <div style={{ flex: 1 }}>
+                            <Skeleton width="60%" height="3rem" marginBottom="1rem" />
+                            <Skeleton width="40%" height="1.5rem" marginBottom="2rem" />
+                            <Skeleton width="100%" height="10rem" />
+                        </div>
+                    </div>
+                </div>
             </div>
         )
     }
@@ -204,19 +218,20 @@ export default function Movie() {
                     <div style={{ flex: 1, minWidth: '280px', paddingTop: '1rem' }}>
                         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
                             {movie.genres?.map(g => (
-                                <span key={g.id} style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '3px', padding: '0.2rem 0.6rem', fontSize: '0.7rem', letterSpacing: '0.1em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  {g.name}
-                </span>
+                                <Tag key={g.id} value={g.name} style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 500 }} />
                             ))}
                         </div>
 
-                        <h1 style={{ fontFamily: 'Bebas Neue', fontSize: 'clamp(2rem, 5vw, 3.5rem)', lineHeight: 1, marginBottom: '0.5rem' }}>
+                        <h1 style={{ fontFamily: 'Bebas Neue', fontSize: 'clamp(2.5rem, 5vw, 4rem)', lineHeight: 1, marginBottom: '0.5rem' }}>
                             {movie.title}
                         </h1>
 
                         <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
                             {movie.vote_average > 0 && (
-                                <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '1.1rem' }}>★ {movie.vote_average.toFixed(1)}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Rating value={Math.round(movie.vote_average)} readOnly stars={10} cancel={false} style={{ fontSize: '0.9rem' }} />
+                                    <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '1.1rem' }}>{movie.vote_average.toFixed(1)}</span>
+                                </div>
                             )}
                             <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{movie.release_date?.split('-')[0]}</span>
                             {movie.runtime > 0 && (
@@ -224,53 +239,61 @@ export default function Movie() {
                             )}
                             {director && (
                                 <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                  Dir. <span style={{ color: 'var(--text)' }}>{director.name}</span>
-                </span>
+                                    Dir. <span style={{ color: 'var(--text)' }}>{director.name}</span>
+                                </span>
                             )}
                         </div>
 
-                        <p style={{ color: 'var(--text-muted)', lineHeight: 1.7, fontSize: '0.95rem', maxWidth: '600px', marginBottom: '2rem' }}>
+                        <p style={{ color: 'var(--text-muted)', lineHeight: 1.7, fontSize: '0.95rem', maxWidth: '700px', marginBottom: '2rem' }}>
                             {movie.overview}
                         </p>
 
                         {/* Actions */}
                         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                            <button onClick={() => setShowReviewModal(true)} disabled={hasReviewed}
-                                    style={{ background: hasReviewed ? 'var(--bg-elevated)' : 'var(--accent)', color: hasReviewed ? 'var(--text-muted)' : 'white', border: hasReviewed ? '1px solid var(--border)' : 'none', borderRadius: '4px', padding: '0.75rem 1.5rem', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: hasReviewed ? 'not-allowed' : 'pointer' }}>
-                                {hasReviewed ? '✓ Ya reseñada' : '★ Escribir reseña'}
-                            </button>
-                            <button onClick={toggleWatchlist}
-                                    style={{ background: isInWatchlist ? 'var(--bg-elevated)' : 'transparent', color: isInWatchlist ? 'var(--accent)' : 'var(--text)', border: `1px solid ${isInWatchlist ? 'var(--accent)' : 'var(--border)'}`, borderRadius: '4px', padding: '0.75rem 1.5rem', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer' }}>
-                                {isInWatchlist ? '✓ En Watchlist' : '+ Watchlist'}
-                            </button>
-                            <button onClick={toggleFavorite}
-                                    style={{ background: isFavorite ? 'var(--bg-elevated)' : 'transparent', color: isFavorite ? 'var(--accent)' : 'var(--text)', border: `1px solid ${isFavorite ? 'var(--accent)' : 'var(--border)'}`, borderRadius: '4px', padding: '0.75rem 1.5rem', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer' }}>
-                                {isFavorite ? '♥ Favorita' : '♡ Favorita'}
-                            </button>
+                            <Button 
+                                label={hasReviewed ? 'Ya reseñada' : 'Escribir reseña'} 
+                                icon={hasReviewed ? 'pi pi-check' : 'pi pi-star-fill'}
+                                onClick={() => setShowReviewModal(true)} 
+                                disabled={hasReviewed}
+                                style={{ background: hasReviewed ? 'var(--bg-elevated)' : 'var(--accent)', borderColor: hasReviewed ? 'var(--border)' : 'var(--accent)', fontWeight: 600 }}
+                            />
+                            <Button 
+                                label={isInWatchlist ? 'En Watchlist' : 'Watchlist'} 
+                                icon={isInWatchlist ? 'pi pi-check' : 'pi pi-plus'}
+                                onClick={toggleWatchlist}
+                                outlined={!isInWatchlist}
+                                style={{ fontWeight: 600, color: isInWatchlist ? 'var(--accent)' : 'white', borderColor: isInWatchlist ? 'var(--accent)' : 'var(--border)' }}
+                            />
+                            <Button 
+                                label="Favorita" 
+                                icon={isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'}
+                                onClick={toggleFavorite}
+                                outlined={!isFavorite}
+                                style={{ fontWeight: 600, color: isFavorite ? 'var(--accent)' : 'white', borderColor: isFavorite ? 'var(--accent)' : 'var(--border)' }}
+                            />
                         </div>
                     </div>
                 </div>
 
                 {/* Cast */}
                 {cast.length > 0 && (
-                    <div style={{ marginTop: '3rem' }}>
-                        <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.4rem', letterSpacing: '0.08em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <span style={{ display: 'inline-block', width: '4px', height: '1.2rem', background: 'var(--accent)', borderRadius: '2px' }} />
-                            REPARTO
+                    <div style={{ marginTop: '4rem' }}>
+                        <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.6rem', letterSpacing: '0.08em', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <span style={{ display: 'inline-block', width: '4px', height: '1.4rem', background: 'var(--accent)', borderRadius: '2px' }} />
+                            REPARTO PRINCIPAL
                         </h2>
-                        <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '1rem' }}>
+                        <div style={{ display: 'flex', gap: '1.5rem', overflowX: 'auto', paddingBottom: '1rem' }}>
                             {cast.map(person => (
                                 <div key={person.id} onClick={() => navigate(`/actor/${person.id}`)}
-                                     style={{ flexShrink: 0, width: '100px', textAlign: 'center', cursor: 'pointer' }}
-                                     onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
-                                     onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-                                    <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto 0.5rem', background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+                                     style={{ flexShrink: 0, width: '110px', textAlign: 'center', cursor: 'pointer' }}
+                                     className="hover:opacity-80 transition-opacity">
+                                    <div style={{ width: '90px', height: '90px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto 0.75rem', background: 'var(--bg-elevated)', border: '2px solid var(--border)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
                                         {person.profile_path
                                             ? <img src={`https://image.tmdb.org/t/p/w185${person.profile_path}`} alt={person.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>👤</div>
+                                            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem' }}>👤</div>
                                         }
                                     </div>
-                                    <p style={{ fontSize: '0.75rem', fontWeight: 500, lineHeight: 1.3 }}>{person.name}</p>
+                                    <p style={{ fontSize: '0.8rem', fontWeight: 600, lineHeight: 1.3, marginBottom: '0.2rem' }}>{person.name}</p>
                                     <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: 1.3 }}>{person.character}</p>
                                 </div>
                             ))}
@@ -279,74 +302,74 @@ export default function Movie() {
                 )}
 
                 {/* Reseñas */}
-                <div style={{ marginTop: '3rem' }}>
-                    <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.4rem', letterSpacing: '0.08em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <span style={{ display: 'inline-block', width: '4px', height: '1.2rem', background: 'var(--accent)', borderRadius: '2px' }} />
-                        RESEÑAS ({reviewsData?.length || 0})
-                    </h2>
+                <div style={{ marginTop: '4rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                        <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.6rem', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: '0.75rem', margin: 0 }}>
+                            <span style={{ display: 'inline-block', width: '4px', height: '1.4rem', background: 'var(--accent)', borderRadius: '2px' }} />
+                            RESEÑAS ({reviewsData?.length || 0})
+                        </h2>
+                        {!hasReviewed && (
+                            <Button label="Escribir reseña" icon="pi pi-pencil" className="p-button-text p-button-sm" onClick={() => setShowReviewModal(true)} style={{ color: 'var(--accent)' }} />
+                        )}
+                    </div>
+                    
                     {!reviewsData?.length ? (
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Sé el primero en reseñar esta película.</p>
+                        <div style={{ background: 'var(--bg-elevated)', borderRadius: '8px', padding: '3rem', textAlign: 'center', border: '1px dashed var(--border)' }}>
+                            <i className="pi pi-comments" style={{ fontSize: '2rem', color: 'var(--text-muted)', marginBottom: '1rem', display: 'block' }}></i>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Sé el primero en reseñar esta película.</p>
+                        </div>
                     ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                             {reviewsData.map(review => {
                                 const likeCount = likesData?.filter(l => l.review_id === review.id && l.is_like === true).length || 0
                                 const dislikeCount = likesData?.filter(l => l.review_id === review.id && l.is_like === false).length || 0
                                 const userVote = likesData?.find(l => l.review_id === review.id && l.user_id === user?.id)
 
                                 return (
-                                    <div key={review.id} style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '6px', padding: '1.25rem' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--bg-card)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', overflow: 'hidden' }}>
+                                    <div key={review.id} style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '8px', padding: '1.5rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-card)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', overflow: 'hidden' }}>
                                                     {review.profiles?.avatar_url
                                                         ? <img src={review.profiles.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                                         : '👤'}
                                                 </div>
-                                                <span onClick={() => navigate(`/profile/${review.user_id}`)}
-                                                      style={{ fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer', color: 'var(--text)' }}
-                                                      onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
-                                                      onMouseLeave={e => e.currentTarget.style.color = 'var(--text)'}>
-                          {review.profiles?.username || 'Usuario'}
-                        </span>
-                                                <span style={{ color: 'var(--accent)', fontWeight: 700 }}>★ {review.rating}/10</span>
+                                                <div>
+                                                    <span onClick={() => navigate(`/profile/${review.user_id}`)}
+                                                        style={{ fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', display: 'block' }}
+                                                        className="hover:text-[var(--accent)] transition-colors">
+                                                        {review.profiles?.username || 'Usuario'}
+                                                    </span>
+                                                    <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                                                        {new Date(review.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-                        {new Date(review.created_at).toLocaleDateString('es-ES')}
-                      </span>
+                                            <div style={{ background: 'rgba(229,27,35,0.1)', padding: '0.25rem 0.75rem', borderRadius: '20px', border: '1px solid var(--accent)' }}>
+                                                <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '0.9rem' }}>★ {review.rating}</span>
+                                            </div>
                                         </div>
 
                                         {review.content && (
-                                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.7, marginBottom: '0.75rem' }}>{review.content}</p>
+                                            <p style={{ color: 'var(--text)', fontSize: '0.95rem', lineHeight: 1.7, marginBottom: '1.25rem', whiteSpace: 'pre-line' }}>{review.content}</p>
                                         )}
 
                                         {/* Likes / Dislikes */}
-                                        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-                                            {[
-                                                { isLike: true, icon: '👍', count: likeCount },
-                                                { isLike: false, icon: '👎', count: dislikeCount },
-                                            ].map(({ isLike, icon, count }) => {
-                                                const isActive = userVote?.is_like === isLike
-                                                return (
-                                                    <button key={String(isLike)}
-                                                            onClick={() => handleVote(review.id, isLike)}
-                                                            disabled={!user}
-                                                            style={{
-                                                                background: isActive ? (isLike ? 'rgba(34,197,94,0.15)' : 'rgba(229,27,35,0.15)') : 'var(--bg-card)',
-                                                                border: `1px solid ${isActive ? (isLike ? '#22c55e' : 'var(--accent)') : 'var(--border)'}`,
-                                                                color: isActive ? (isLike ? '#22c55e' : 'var(--accent)') : 'var(--text-muted)',
-                                                                borderRadius: '4px',
-                                                                padding: '0.3rem 0.75rem',
-                                                                fontSize: '0.8rem',
-                                                                cursor: user ? 'pointer' : 'not-allowed',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                gap: '0.4rem',
-                                                                transition: 'all 0.15s',
-                                                            }}>
-                                                        {icon} {count}
-                                                    </button>
-                                                )
-                                            })}
+                                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                            <Button 
+                                                icon="pi pi-thumbs-up" 
+                                                label={String(likeCount)}
+                                                onClick={() => handleVote(review.id, true)}
+                                                className={`p-button-sm ${userVote?.is_like === true ? '' : 'p-button-text'}`}
+                                                style={{ background: userVote?.is_like === true ? '#22c55e' : 'transparent', borderColor: userVote?.is_like === true ? '#22c55e' : 'var(--border)', color: userVote?.is_like === true ? 'white' : 'var(--text-muted)' }}
+                                            />
+                                            <Button 
+                                                icon="pi pi-thumbs-down" 
+                                                label={String(dislikeCount)}
+                                                onClick={() => handleVote(review.id, false)}
+                                                className={`p-button-sm ${userVote?.is_like === false ? '' : 'p-button-text'}`}
+                                                style={{ background: userVote?.is_like === false ? 'var(--accent)' : 'transparent', borderColor: userVote?.is_like === false ? 'var(--accent)' : 'var(--border)', color: userVote?.is_like === false ? 'white' : 'var(--text-muted)' }}
+                                            />
                                         </div>
                                     </div>
                                 )
@@ -357,21 +380,22 @@ export default function Movie() {
 
                 {/* Similar */}
                 {similar.length > 0 && (
-                    <div style={{ marginTop: '3rem', marginBottom: '4rem' }}>
-                        <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.4rem', letterSpacing: '0.08em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <span style={{ display: 'inline-block', width: '4px', height: '1.2rem', background: 'var(--accent)', borderRadius: '2px' }} />
-                            PELÍCULAS SIMILARES
+                    <div style={{ marginTop: '4rem', marginBottom: '5rem' }}>
+                        <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.6rem', letterSpacing: '0.08em', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <span style={{ display: 'inline-block', width: '4px', height: '1.4rem', background: 'var(--accent)', borderRadius: '2px' }} />
+                            RECOMENDACIONES SIMILARES
                         </h2>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '1rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1.5rem' }}>
                             {similar.map(movie => (
-                                <div key={movie.id} onClick={() => navigate(`/movie/${movie.id}`)} style={{ cursor: 'pointer' }}>
-                                    <div style={{ borderRadius: '6px', overflow: 'hidden', background: 'var(--bg-card)', border: '1px solid var(--border)', aspectRatio: '2/3' }}>
+                                <div key={movie.id} onClick={() => navigate(`/movie/${movie.id}`)} style={{ cursor: 'pointer' }} className="group">
+                                    <div style={{ borderRadius: '8px', overflow: 'hidden', background: 'var(--bg-card)', border: '1px solid var(--border)', aspectRatio: '2/3' }} className="group-hover:scale-105 transition-transform duration-300">
                                         {movie.poster_path
                                             ? <img src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`} alt={movie.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
                                             : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.75rem' }}>Sin imagen</div>
                                         }
                                     </div>
-                                    <p style={{ fontSize: '0.8rem', marginTop: '0.5rem', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{movie.title}</p>
+                                    <p style={{ fontSize: '0.85rem', marginTop: '0.75rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{movie.title}</p>
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{movie.release_date?.split('-')[0]}</p>
                                 </div>
                             ))}
                         </div>
@@ -389,6 +413,19 @@ export default function Movie() {
                     }}
                 />
             )}
+            
+            <style>{`
+                .p-rating-item .p-rating-icon {
+                    color: var(--accent) !important;
+                    font-size: 0.8rem;
+                }
+                .p-skeleton {
+                    background-color: var(--bg-elevated) !important;
+                }
+                .p-skeleton::after {
+                    background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0)) !important;
+                }
+            `}</style>
         </div>
     )
 }

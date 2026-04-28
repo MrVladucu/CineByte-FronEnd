@@ -2,6 +2,11 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
+import { Dialog } from 'primereact/dialog'
+import { Rating } from 'primereact/rating'
+import { InputTextarea } from 'primereact/inputtextarea'
+import { Button } from 'primereact/button'
+import { Message } from 'primereact/message'
 
 export default function ReviewModal({ movie, onClose, onSuccess }) {
   const { user } = useAuth()
@@ -10,85 +15,76 @@ export default function ReviewModal({ movie, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-    const handleSubmit = async (e) => {
-        e.preventDefault()
-        if (rating === 0) {
-            setError('Selecciona una puntuación')
-            return
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (rating === 0) {
+      setError('Selecciona una puntuación')
+      return
+    }
+    setLoading(true)
+    setError('')
+
+    // Gemini para moderar las reviews
+    if (content.trim()) {
+      try {
+        const modResponse = await api.post('/api/moderation/check', { text: content.trim() })
+        if (!modResponse.data.approved) {
+          setError(`Reseña rechazada: ${modResponse.data.reason}`)
+          setLoading(false)
+          return
         }
-        setLoading(true)
-        setError('')
-
-        // Gemini para moderar las reviews
-        if (content.trim()) {
-            try {
-                console.log('Llamando a moderación con texto:', content.trim())
-                const modResponse = await api.post('/api/moderation/check', { text: content.trim() })
-                console.log('Respuesta moderación:', modResponse.data)
-                if (!modResponse.data.approved) {
-                    setError(`Reseña rechazada: ${modResponse.data.reason}`)
-                    setLoading(false)
-                    return
-                }
-            } catch (err) {
-                console.error('Error moderación:', err)
-                setError('Error al verificar la reseña. Por favor, inténtalo de nuevo más tarde.')
-                setLoading(false)
-                return
-            }
-        }
-
-        const { error: supabaseError } = await supabase
-            .from('reviews')
-            .insert({
-                user_id: user.id,
-                tmdb_movie_id: movie.id,
-                rating,
-                content: content.trim() || null,
-            })
-
-        if (supabaseError) {
-            setError(supabaseError.message)
-            setLoading(false)
-            return
-        }
-
-        try {
-            await api.post('/api/gamification/review', { userId: user.id })
-        } catch (e) { /* vacios */ }
-
+      } catch (err) {
+        setError('Error al verificar la reseña. Por favor, inténtalo de nuevo más tarde.')
         setLoading(false)
-        onSuccess?.()
-        onClose()
+        return
+      }
     }
 
+    const { error: supabaseError } = await supabase
+      .from('reviews')
+      .insert({
+        user_id: user.id,
+        tmdb_movie_id: movie.id,
+        rating,
+        content: content.trim() || null,
+      })
+
+    if (supabaseError) {
+      setError(supabaseError.message)
+      setLoading(false)
+      return
+    }
+
+    try {
+      await api.post('/api/gamification/review', { userId: user.id })
+    } catch (e) { /* vacios */ }
+
+    setLoading(false)
+    onSuccess?.()
+    onClose()
+  }
+
+  const headerElement = (
+    <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.5rem', letterSpacing: '0.05em', margin: 0 }}>
+      RESEÑA — {movie.title?.toUpperCase()}
+    </h2>
+  )
+
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 100,
-      background: 'rgba(0,0,0,0.85)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '1rem',
-    }}
-      onClick={(e) => e.target === e.currentTarget && onClose()}>
-
-      <div style={{
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        borderRadius: '8px',
-        padding: '2rem',
-        width: '100%',
-        maxWidth: '480px',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.5rem', letterSpacing: '0.05em' }}>
-            RESEÑA — {movie.title?.toUpperCase()}
-          </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem' }}>✕</button>
-        </div>
-
+    <Dialog 
+      visible={true} 
+      onHide={onClose} 
+      header={headerElement}
+      style={{ width: '90vw', maxWidth: '480px' }}
+      breakpoints={{ '960px': '75vw', '641px': '100vw' }}
+      draggable={false}
+      resizable={false}
+      className="review-dialog"
+    >
+      <div style={{ paddingTop: '1rem' }}>
         {error && (
-          <div style={{ background: 'rgba(229,27,35,0.1)', border: '1px solid var(--accent)', borderRadius: '4px', padding: '0.75rem', marginBottom: '1rem', color: 'var(--accent)', fontSize: '0.85rem' }}>
-            {error}
+          <div style={{ marginBottom: '1.5rem' }}>
+            <Message severity="error" text={error} style={{ width: '100%', justifyContent: 'flex-start' }} />
           </div>
         )}
 
@@ -98,30 +94,15 @@ export default function ReviewModal({ movie, onClose, onSuccess }) {
             <label style={{ display: 'block', fontSize: '0.75rem', letterSpacing: '0.1em', color: 'var(--text-muted)', marginBottom: '0.75rem', textTransform: 'uppercase' }}>
               Puntuación
             </label>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => setRating(n)}
-                  style={{
-                    width: '36px', height: '36px',
-                    borderRadius: '4px',
-                    border: '1px solid',
-                    borderColor: rating >= n ? 'var(--accent)' : 'var(--border)',
-                    background: rating >= n ? 'var(--accent)' : 'var(--bg-elevated)',
-                    color: 'white',
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
-                  }}>
-                  {n}
-                </button>
-              ))}
-            </div>
+            <Rating 
+              value={rating} 
+              onChange={(e) => setRating(e.value)} 
+              stars={10} 
+              cancel={false} 
+              style={{ fontSize: '1.5rem' }}
+            />
             {rating > 0 && (
-              <p style={{ color: 'var(--accent)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
+              <p style={{ color: 'var(--accent)', fontSize: '0.8rem', marginTop: '0.5rem', fontWeight: 600 }}>
                 {rating}/10 — {['', 'Pésima', 'Muy mala', 'Mala', 'Regular', 'Mediocre', 'Bien', 'Buena', 'Muy buena', 'Excelente', 'Obra maestra'][rating]}
               </p>
             )}
@@ -132,46 +113,49 @@ export default function ReviewModal({ movie, onClose, onSuccess }) {
             <label style={{ display: 'block', fontSize: '0.75rem', letterSpacing: '0.1em', color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>
               Reseña (opcional)
             </label>
-            <textarea
+            <InputTextarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
               rows={4}
               placeholder="¿Qué te pareció la película?"
-              style={{
-                width: '100%',
-                background: 'var(--bg-elevated)',
-                border: '1px solid var(--border)',
-                color: 'var(--text)',
-                borderRadius: '4px',
-                padding: '0.75rem 1rem',
-                fontSize: '0.9rem',
-                outline: 'none',
-                resize: 'vertical',
-                fontFamily: 'DM Sans, sans-serif',
-              }}
+              style={{ width: '100%', fontSize: '0.9rem' }}
+              autoResize
             />
           </div>
 
-          <button
+          <Button
             type="submit"
+            label={loading ? 'GUARDANDO...' : 'PUBLICAR RESEÑA'}
+            loading={loading}
             disabled={loading}
             style={{
               width: '100%',
-              background: loading ? 'var(--border)' : 'var(--accent)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              padding: '0.85rem',
-              fontSize: '0.85rem',
+              background: 'var(--accent)',
+              borderColor: 'var(--accent)',
               fontWeight: 600,
               letterSpacing: '0.15em',
-              textTransform: 'uppercase',
-              cursor: loading ? 'not-allowed' : 'pointer',
-            }}>
-            {loading ? 'GUARDANDO...' : 'PUBLICAR RESEÑA'}
-          </button>
+            }}
+          />
         </form>
       </div>
-    </div>
+
+      <style>{`
+        .review-dialog .p-dialog-header {
+          background: var(--bg-card);
+          color: var(--text);
+          border-bottom: 1px solid var(--border);
+        }
+        .review-dialog .p-dialog-content {
+          background: var(--bg-card);
+          color: var(--text);
+        }
+        .p-rating-item .p-rating-icon {
+          color: var(--accent) !important;
+        }
+        .p-rating-item.p-rating-item-active .p-rating-icon {
+            color: var(--accent) !important;
+        }
+      `}</style>
+    </Dialog>
   )
 }
