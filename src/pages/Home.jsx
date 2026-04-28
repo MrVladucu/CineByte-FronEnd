@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import MovieCard from "../components/Moviecard";
@@ -98,6 +97,7 @@ export default function Home() {
           <Skeleton width="100%" height="70vh" />
         ) : (
           <Carousel 
+            className="hero-carousel"
             value={trendingMovies} 
             numVisible={1} 
             numScroll={1} 
@@ -117,7 +117,7 @@ export default function Home() {
       </div>
 
       <style>{`
-        .p-carousel-indicators {
+        .hero-carousel .p-carousel-indicators {
           position: absolute;
           bottom: 1.5rem;
           width: 100%;
@@ -127,11 +127,11 @@ export default function Home() {
           pointer-events: none;
           z-index: 10;
         }
-        .p-carousel-indicator {
+        .hero-carousel .p-carousel-indicator {
           pointer-events: auto;
           margin: 0 0.25rem;
         }
-        .p-carousel-indicator button {
+        .hero-carousel .p-carousel-indicator button {
           background-color: rgba(255, 255, 255, 0.2) !important;
           width: 1.5rem !important;
           height: 3px !important;
@@ -139,18 +139,33 @@ export default function Home() {
           border: none !important;
           transition: background-color 0.3s, width 0.3s !important;
         }
-        .p-carousel-indicator.p-highlight button {
+        .hero-carousel .p-carousel-indicator.p-highlight button {
           background-color: var(--accent) !important;
           width: 2.5rem !important;
         }
-        .p-carousel-content {
+        .hero-carousel .p-carousel-content {
             position: relative;
         }
-        .p-carousel-container {
+        .hero-carousel .p-carousel-container {
             position: relative;
         }
-        .p-carousel-items-container {
-            display: flex;
+        
+        /* Efecto Crossfade (Derretir) */
+        .hero-carousel .p-carousel-items-container {
+            display: grid !important;
+            transform: none !important;
+            transition: none !important;
+        }
+        .hero-carousel .p-carousel-item {
+            grid-area: 1 / 1;
+            opacity: 0;
+            transition: opacity 1.2s ease-in-out;
+            pointer-events: none;
+        }
+        .hero-carousel .p-carousel-item.p-carousel-item-active {
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 1;
         }
       `}</style>
     </div>
