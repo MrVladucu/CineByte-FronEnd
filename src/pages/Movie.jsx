@@ -17,6 +17,7 @@ export default function Movie({ type = 'movie' }) {
     const { user } = useAuth()
     const queryClient = useQueryClient()
     const [showReviewModal, setShowReviewModal] = useState(false)
+    const [showTrailer, setShowTrailer] = useState(false)
 
     const { data: movieData, isLoading: movieLoading } = useQuery({
         queryKey: [type, id],
@@ -194,6 +195,7 @@ export default function Movie({ type = 'movie' }) {
     const title = movie.title || movie.name;
     const releaseDate = movie.release_date || movie.first_air_date;
     const runtime = movie.runtime || (movie.episode_run_time && movie.episode_run_time[0]);
+    const trailer = movie.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube') || movie.videos?.results?.find(v => v.site === 'YouTube');
 
     return (
         <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -254,6 +256,14 @@ export default function Movie({ type = 'movie' }) {
 
                         {/* Actions */}
                         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                            {trailer && (
+                                <Button 
+                                    label="Ver Tráiler" 
+                                    icon="pi pi-youtube"
+                                    onClick={() => setShowTrailer(true)} 
+                                    style={{ background: '#ef4444', borderColor: '#ef4444', fontWeight: 600, color: 'white' }}
+                                />
+                            )}
                             <Button 
                                 label={hasReviewed ? 'Ya reseñada' : 'Escribir reseña'} 
                                 icon={hasReviewed ? 'pi pi-check' : 'pi pi-star-fill'}
@@ -406,6 +416,15 @@ export default function Movie({ type = 'movie' }) {
                     </div>
                 )}
             </div>
+
+            {showTrailer && trailer && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.9)' }} onClick={() => setShowTrailer(false)}>
+                    <div style={{ position: 'relative', width: '90%', maxWidth: '1000px', aspectRatio: '16/9', background: '#000', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }} onClick={e => e.stopPropagation()}>
+                        <button onClick={() => setShowTrailer(false)} style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.5)', border: 'none', color: 'white', width: '40px', height: '40px', borderRadius: '50%', fontSize: '1.5rem', cursor: 'pointer', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>&times;</button>
+                        <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1`} title="Trailer" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+                    </div>
+                </div>
+            )}
 
             {showReviewModal && (
                 <ReviewModal
