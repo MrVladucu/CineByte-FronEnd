@@ -12,7 +12,7 @@ export default function MovieCard({ movie, type = 'movie' }) {
   return (
     <Link to={`/${mediaType}/${movie.id}`} className="group block">
       <div style={{ borderRadius: '6px', overflow: 'hidden', background: 'var(--bg-card)', border: '1px solid var(--border)' }}
-        className="relative aspect-[2/3] transition-transform duration-300 group-hover:scale-[1.03]">
+        className="relative aspect-[2/3] transition-all duration-300 group-hover:scale-[1.05] group-hover:shadow-[0_0_20px_rgba(229,27,35,0.4)] group-hover:border-[var(--accent)]">
 
         {posterUrl ? (
           <img

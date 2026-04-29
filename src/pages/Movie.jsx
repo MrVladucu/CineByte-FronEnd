@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import Navbar from '../components/Navbar'
+import MovieCard from '../components/Moviecard'
 import ReviewModal from '../components/ReviewModal'
 import { tmdbService } from '../services/tmdb'
 import { Button } from 'primereact/button'
@@ -401,16 +402,7 @@ export default function Movie({ type = 'movie' }) {
                         </h2>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1.5rem' }}>
                             {similar.map(sim => (
-                                <div key={sim.id} onClick={() => navigate(`/${type}/${sim.id}`)} style={{ cursor: 'pointer' }} className="group">
-                                    <div style={{ borderRadius: '8px', overflow: 'hidden', background: 'var(--bg-card)', border: '1px solid var(--border)', aspectRatio: '2/3' }} className="group-hover:scale-105 transition-transform duration-300">
-                                        {sim.poster_path
-                                            ? <img src={`https://image.tmdb.org/t/p/w300${sim.poster_path}`} alt={sim.title || sim.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
-                                            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.75rem' }}>Sin imagen</div>
-                                        }
-                                    </div>
-                                    <p style={{ fontSize: '0.85rem', marginTop: '0.75rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sim.title || sim.name}</p>
-                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{(sim.release_date || sim.first_air_date)?.split('-')[0]}</p>
-                                </div>
+                                <MovieCard key={sim.id} movie={sim} type={type} />
                             ))}
                         </div>
                     </div>
