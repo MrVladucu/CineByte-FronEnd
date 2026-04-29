@@ -21,14 +21,14 @@ function MovieSection({ title, queryKey, queryFn, type = 'movie' }) {
 
     const movieTemplate = (movie) => {
         return (
-            <div style={{ padding: '0 0.5rem' }}>
+            <div style={{ padding: '20px 0.5rem', width: '100%', height: '100%', minWidth: 0 }}>
                 <MovieCard movie={movie} type={type} />
             </div>
         )
     }
 
     return (
-        <section style={{ marginBottom: '3rem' }}>
+        <section style={{ marginBottom: '3rem', position: 'relative' }}>
             <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.6rem', letterSpacing: '0.08em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text)' }}>
                 <span style={{ display: 'inline-block', width: '4px', height: '1.4rem', background: 'var(--accent)', borderRadius: '2px' }} />
                 {title}
@@ -41,6 +41,7 @@ function MovieSection({ title, queryKey, queryFn, type = 'movie' }) {
                 </div>
             ) : (
                 <Carousel
+                    className="section-carousel" // AÑADIDO: Clase esencial para el CSS
                     value={movies}
                     numVisible={6}
                     numScroll={3}
@@ -133,13 +134,18 @@ export default function Home() {
             </div>
 
             {/* Secciones */}
-            <div style={{ width: '100%', maxWidth: '1280px', margin: '0 auto', padding: '2.5rem 2rem' }}>
+            <div style={{ width: '100%', maxWidth: '1550px', margin: '0 auto', padding: '0 2rem' }}>
                 <MovieSection title="Películas en tendencia" queryKey={['trending-movies']} queryFn={tmdbService.getTrendingMovies} type="movie" />
+            </div>
+            <div style={{ width: '100%', maxWidth: '1550px', margin: '0 auto', padding: '0 2rem' }}>
                 <MovieSection title="Series en tendencia" queryKey={['trending-tv']} queryFn={tmdbService.getTrendingTv} type="tv" />
+            </div>
+            <div style={{ width: '100%', maxWidth: '1550px', margin: '0 auto', padding: '0 2rem' }}>
                 <MovieSection title="Populares ahora" queryKey={['popular-movies']} queryFn={() => tmdbService.getPopularMovies(1)} type="movie" />
             </div>
 
             <style>{`
+        /* --- HERO CAROUSEL --- */
         .hero-carousel .p-carousel-indicators {
           position: absolute;
           bottom: 1.5rem;
@@ -166,14 +172,11 @@ export default function Home() {
           background-color: var(--accent) !important;
           width: 2.5rem !important;
         }
-        .hero-carousel .p-carousel-content {
-          position: relative;
-        }
+        .hero-carousel .p-carousel-content,
         .hero-carousel .p-carousel-container {
           position: relative;
         }
         
-        /* Efecto Crossfade (Derretir) */
         .hero-carousel .p-carousel-items-container {
           display: grid !important;
           transform: none !important;
@@ -191,9 +194,24 @@ export default function Home() {
           z-index: 1;
         }
 
-        /* Estilos para carousels de secciones */
-        .p-carousel-prev,
-        .p-carousel-next {
+        /* --- SECTION CAROUSEL (MALLA PERFECTA) --- */
+        
+        /* Ocultar barra gris de scroll horizontal */
+        .section-carousel .p-carousel-content {
+            overflow: hidden !important;
+        }
+        
+        /* Que PrimeReact se encargue de los anchos, nosotros solo le pedimos que estire la altura */
+        .section-carousel .p-carousel-items-container {
+            align-items: stretch !important;
+        }
+        .section-carousel .p-carousel-item {
+            min-width: 0 !important;
+        }
+
+        /* Estilos y Posición de los botones */
+        .section-carousel .p-carousel-prev,
+        .section-carousel .p-carousel-next {
           background: rgba(229, 27, 35, 0.8) !important;
           color: white !important;
           border: none !important;
@@ -201,14 +219,22 @@ export default function Home() {
           height: 2.5rem !important;
           border-radius: 50% !important;
           transition: all 0.2s !important;
+          position: absolute !important;
+          top: calc(50% - 1.5rem) !important;
+          transform: translateY(-50%) !important;
+          z-index: 10 !important;
+          margin: 0 !important;
         }
-        .p-carousel-prev:hover,
-        .p-carousel-next:hover {
+        .section-carousel .p-carousel-prev { left: -1.25rem !important; }
+        .section-carousel .p-carousel-next { right: -1.25rem !important; }
+        
+        .section-carousel .p-carousel-prev:hover,
+        .section-carousel .p-carousel-next:hover {
           background: var(--accent) !important;
-          transform: scale(1.1) !important;
+          transform: translateY(-50%) scale(1.1) !important;
         }
-        .p-carousel-prev:disabled,
-        .p-carousel-next:disabled {
+        .section-carousel .p-carousel-prev:disabled,
+        .section-carousel .p-carousel-next:disabled {
           opacity: 0.3 !important;
         }
       `}</style>

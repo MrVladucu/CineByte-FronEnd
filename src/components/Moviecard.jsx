@@ -13,7 +13,7 @@ export default function MovieCard({ movie, type = 'movie' }) {
   const mediaType = movie.media_type || type
 
   return (
-      <div style={{ textDecoration: 'none' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', minWidth: 0 }}>
         <Link
             to={`/${mediaType}/${movie.id}`}
             onMouseEnter={() => setIsHovered(true)}
@@ -31,6 +31,7 @@ export default function MovieCard({ movie, type = 'movie' }) {
               transform: isHovered ? 'scale(1.05)' : 'scale(1)',
               boxShadow: isHovered ? '0 0 20px rgba(229,27,35,0.4)' : 'none',
               borderColor: isHovered ? 'var(--accent)' : 'var(--border)',
+              width: '100%',
             }}>
 
           {posterUrl ? (
@@ -71,14 +72,7 @@ export default function MovieCard({ movie, type = 'movie' }) {
             padding: '0.75rem',
             pointerEvents: 'none',
           }}>
-            <p style={{
-              fontFamily: 'Bebas Neue',
-              fontSize: '1rem',
-              letterSpacing: '0.05em',
-              color: 'white',
-              lineHeight: 1.2,
-              marginBottom: '0.25rem',
-            }}>
+            <p style={{ fontFamily: 'Bebas Neue', fontSize: '1rem', letterSpacing: '0.05em', color: 'white', lineHeight: 1.2, marginBottom: '0.25rem' }}>
               {title}
             </p>
             {movie.vote_average > 0 && (
@@ -89,20 +83,23 @@ export default function MovieCard({ movie, type = 'movie' }) {
           </div>
         </Link>
 
-        <div style={{ marginTop: '0.5rem', paddingLeft: '0.25rem', paddingRight: '0.25rem' }}>
+        {/* Contenedor de texto: Altura FIJA de 3rem para que todas las columnas midan igual */}
+        <div style={{ marginTop: '0.75rem', padding: '0 0.25rem', height: '3rem', width: '100%', overflow: 'hidden' }}>
           <p style={{
-            fontSize: '0.8rem',
+            fontSize: '0.85rem',
             fontWeight: 500,
+            margin: '0 0 0.2rem 0',
             color: isHovered ? 'var(--accent)' : 'var(--text)',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
             transition: 'color 0.3s',
+            width: '100%'
           }}>
             {title}
           </p>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>
-            {releaseDate?.split('-')[0]}
+            {releaseDate?.split('-')[0] || '----'}
           </p>
         </div>
       </div>
