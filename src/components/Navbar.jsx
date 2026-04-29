@@ -85,7 +85,7 @@ export default function Navbar() {
       }}>
 
         {/* Logo */}
-        <Link to="/" style={{ flexShrink: 0, textDecoration: 'none' }}>
+        <Link to="/" style={{ flexShrink: 0, textDecoration: 'none', display: 'inline-block' }} className="logo-glow">
           <span style={{ fontFamily: 'Bebas Neue', fontSize: '1.8rem', color: 'var(--accent)', letterSpacing: '0.1em' }}>
             CINE<span style={{ color: 'var(--text)' }}>BYTE</span>
           </span>
@@ -204,16 +204,16 @@ export default function Navbar() {
             style={{ color: 'var(--text-muted)', width: '2.5rem', height: '2.5rem' }}
           />
 
-          <Link to="/" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', letterSpacing: '0.1em', fontWeight: 500, textDecoration: 'none', transition: 'color 0.3s' }}>
+          <Link to="/" className="nav-link-glow" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', letterSpacing: '0.1em', fontWeight: 500, textDecoration: 'none' }}>
             INICIO
           </Link>
-          <Link to="/search" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', letterSpacing: '0.1em', fontWeight: 500, textDecoration: 'none', transition: 'color 0.3s' }}>
+          <Link to="/search" className="nav-link-glow" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', letterSpacing: '0.1em', fontWeight: 500, textDecoration: 'none' }}>
             EXPLORAR
           </Link>
 
           {user && (
             <>
-              <Link to={`/profile/${user.id}`} style={{ color: 'var(--text-muted)', fontSize: '0.85rem', letterSpacing: '0.1em', fontWeight: 500, textDecoration: 'none', transition: 'color 0.3s' }}>
+              <Link to={`/profile/${user.id}`} className="nav-link-glow" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', letterSpacing: '0.1em', fontWeight: 500, textDecoration: 'none' }}>
                 PERFIL
               </Link>
               <button

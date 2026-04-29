@@ -53,3 +53,22 @@ h1, h2, h3, .display {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent);
 }
+
+.nav-link-glow {
+  transition: all 0.3s ease !important;
+}
+
+.nav-link-glow:hover {
+  color: var(--text) !important;
+  font-size: 0.95rem !important;
+  text-shadow: 0 0 10px rgba(229, 27, 35, 0.6);
+}
+
+.logo-glow {
+  transition: all 0.3s ease !important;
+}
+
+.logo-glow:hover {
+  text-shadow: 0 0 15px rgba(229, 27, 35, 0.8);
+  transform: scale(1.05);
+}
