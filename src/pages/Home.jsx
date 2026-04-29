@@ -41,7 +41,7 @@ function MovieSection({ title, queryKey, queryFn, type = 'movie' }) {
                 </div>
             ) : (
                 <Carousel
-                    className="section-carousel" // AÑADIDO: Clase esencial para el CSS
+                    className="section-carousel"
                     value={movies}
                     numVisible={6}
                     numScroll={3}
@@ -82,7 +82,7 @@ export default function Home() {
                 }} />
 
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end' }}>
-                    <div style={{ width: '100%', maxWidth: '1280px', margin: '0 auto', padding: '0 2rem 3rem 2rem' }}>
+                    <div style={{ width: '100%', maxWidth: '1530px', margin: '3rem auto', padding: '0 2rem 3rem 2rem' }}>
                         <p style={{ color: 'var(--accent)', fontSize: '0.8rem', letterSpacing: '0.2em', fontWeight: 500, marginBottom: '0.5rem' }}>
                             TENDENCIA ESTA SEMANA
                         </p>

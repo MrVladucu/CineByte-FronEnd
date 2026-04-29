@@ -25,6 +25,7 @@ export default function Navbar() {
 
   useEffect(() => {
     if (searchQuery.trim().length >= 2 && searchFocused) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowDropdown(true)
     } else {
       setShowDropdown(false)
@@ -74,7 +75,7 @@ export default function Navbar() {
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '1280px',
+        maxWidth: '1530px',
         margin: '0 auto',
         padding: '0 2rem',
         height: '64px',
@@ -86,7 +87,7 @@ export default function Navbar() {
 
         {/* Logo */}
         <Link to="/" style={{ flexShrink: 0, textDecoration: 'none', display: 'inline-block' }} className="logo-glow">
-          <span style={{ fontFamily: 'Bebas Neue', fontSize: '1.8rem', color: 'var(--accent)', letterSpacing: '0.1em' }}>
+          <span style={{ fontFamily: 'Bebas Neue', fontSize: '2.3rem', color: 'var(--accent)', letterSpacing: '0.1em' }}>
             CINE<span style={{ color: 'var(--text)' }}>BYTE</span>
           </span>
         </Link>
@@ -101,13 +102,13 @@ export default function Navbar() {
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setSearchFocused(true)}
               style={{
-                width: '100%',
+                width: '130%',
                 background: 'var(--bg-elevated)',
-                border: `1px solid ${searchFocused ? 'var(--accent)' : 'var(--border)'}`,
+                border: `2px solid ${searchFocused ? 'var(--accent)' : 'var(--border)'}`,
                 color: 'var(--text)',
                 borderRadius: showDropdown ? '4px 4px 0 0' : '4px',
                 padding: '0.5rem 1rem',
-                fontSize: '0.85rem',
+                fontSize: '1rem',
                 outline: 'none',
                 transition: 'border-color 0.2s, box-shadow 0.2s, background-color 0.3s, color 0.3s',
                 boxShadow: searchFocused ? '0 0 0 2px rgba(229,27,35,0.2)' : 'none',
