@@ -8,6 +8,9 @@ import Profile from './pages/Profile'
 import Search from './pages/Search'
 import Footer from './components/Footer'
 import EditProfile from './pages/EditProfile'
+import AdminDashboard from './pages/AdminDashboard'
+import AdminRoute from './components/AdminRoute'
+import SessionTracker from './components/SessionTracker'
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth()
@@ -27,6 +30,7 @@ function AnimatedRoutes() {
         <Route path="/profile/:username" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
         <Route path="/profile/edit" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
+        <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
       </Routes>
     </div>
   )
@@ -38,6 +42,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <SessionTracker />
         <AnimatedRoutes />
         <Footer />
       </div>

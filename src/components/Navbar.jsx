@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { tmdbService } from '../services/tmdb'
 import { useTheme } from '../context/ThemeContext'
 import { Button } from 'primereact/button'
+import { supabase } from '../lib/supabase'
 
 export default function Navbar() {
   const { user, signOut } = useAuth()
@@ -19,6 +20,15 @@ export default function Navbar() {
     queryKey: ['navbar-search', searchQuery],
     queryFn: () => tmdbService.searchMovies(searchQuery, 1),
     enabled: searchQuery.trim().length >= 2,
+  })
+
+  const { data: userRole } = useQuery({
+    queryKey: ['user-role', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+      return data?.role
+    },
+    enabled: !!user,
   })
 
   const movies = searchResults?.data?.results?.slice(0, 6) || []
@@ -214,6 +224,11 @@ export default function Navbar() {
 
           {user && (
             <>
+              {userRole === 'admin' && (
+                <Link to="/admin" className="nav-link-glow" style={{ color: 'var(--accent)', fontSize: '0.85rem', letterSpacing: '0.1em', fontWeight: 700, textDecoration: 'none' }}>
+                  ADMIN
+                </Link>
+              )}
               <Link to={`/profile/${user.id}`} className="nav-link-glow" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', letterSpacing: '0.1em', fontWeight: 500, textDecoration: 'none' }}>
                 PERFIL
               </Link>
