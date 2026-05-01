@@ -4,6 +4,9 @@ export const tmdbService = {
   searchMovies: (query, page = 1) =>
     api.get(`/api/tmdb/search`, { params: { query, page } }),
 
+  aiSearch: (query) =>
+    api.get(`/api/tmdb/ai-search`, { params: { query } }),
+
   getMovieDetails: (id) =>
     api.get(`/api/tmdb/movies/${id}`),
 
@@ -12,7 +15,8 @@ export const tmdbService = {
 
   getTrendingMovies: () =>
     api.get(`/api/tmdb/movies/trending`),
-getMovieCredits: (id) =>
+
+  getMovieCredits: (id) =>
   api.get(`/api/tmdb/movies/${id}/credits`),
 
 getMovieProviders: (id) =>
