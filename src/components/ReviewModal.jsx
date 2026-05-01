@@ -45,6 +45,7 @@ export default function ReviewModal({ movie, onClose, onSuccess }) {
       .insert({
         user_id: user.id,
         tmdb_movie_id: movie.id,
+        media_type: movie.media_type || 'movie',
         rating,
         content: content.trim() || null,
       })

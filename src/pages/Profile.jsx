@@ -39,27 +39,27 @@ function XpBar({ xp, level }) {
   )
 }
 
-function MovieGrid({ movieIds, emptyText }) {
+function MovieGrid({ items, emptyText }) {
   const { data, isLoading } = useQuery({
-    queryKey: ['movie-grid', movieIds],
+    queryKey: ['movie-grid', items],
     queryFn: async () => {
       const results = await Promise.all(
-          movieIds.map(id => tmdbService.getMovieDetails(id).catch(() => null))
+          items.map(item => (item.type === 'tv' ? tmdbService.getTvDetails(item.id) : tmdbService.getMovieDetails(item.id)).catch(() => null))
       )
-      return results.filter(Boolean).map(r => r.data)
+      return results.filter(Boolean).map((r, i) => ({ ...r.data, media_type: items[i].type }))
     },
-    enabled: movieIds.length > 0,
+    enabled: items.length > 0,
   })
 
   const navigate = useNavigate()
 
-  if (movieIds.length === 0) return (
+  if (items.length === 0) return (
       <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{emptyText}</p>
   )
 
   if (isLoading) return (
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '1rem' }}>
-        {movieIds.map((_, i) => (
+        {items.map((_, i) => (
             <div key={i} style={{ background: 'var(--bg-elevated)', borderRadius: '6px', aspectRatio: '2/3' }} />
         ))}
       </div>
@@ -67,21 +67,21 @@ function MovieGrid({ movieIds, emptyText }) {
 
   return (
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '1rem' }}>
-        {data?.map(movie => movie && (
-            <div key={movie.id} onClick={() => navigate(`/movie/${movie.id}`)}
+        {data?.map(media => media && (
+            <div key={`${media.media_type}-${media.id}`} onClick={() => navigate(`/${media.media_type}/${media.id}`)}
                  style={{ cursor: 'pointer' }}
                  onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
                  onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
               <div style={{ borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border)', aspectRatio: '2/3', background: 'var(--bg-elevated)' }}>
-                {movie.poster_path ? (
-                    <img src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`} alt={movie.title}
+                {media.poster_path ? (
+                    <img src={`https://image.tmdb.org/t/p/w300${media.poster_path}`} alt={media.title || media.name}
                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
                 ) : (
                     <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.75rem' }}>Sin imagen</div>
                 )}
               </div>
               <p style={{ fontSize: '0.75rem', marginTop: '0.4rem', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {movie.title}
+                {media.title || media.name}
               </p>
             </div>
         ))}
@@ -171,7 +171,7 @@ export default function Profile() {
     queryFn: async () => {
       const { data } = await supabase
           .from('favorite_movies')
-          .select('tmdb_movie_id')
+          .select('tmdb_movie_id, media_type')
           .eq('user_id', username)
           .order('added_at', { ascending: false })
       return data
@@ -179,11 +179,23 @@ export default function Profile() {
     enabled: !!profileData,
   })
 
-  const movieIds = reviewsData?.map(r => r.tmdb_movie_id) || []
+  const movieIds = reviewsData?.map(r => ({ id: r.tmdb_movie_id, type: r.media_type || 'movie' })) || []
   const { titles, posters } = useMovieTitles(movieIds)
-  const watchlistIds = watchlistData?.list_movies?.map(m => m.tmdb_movie_id) || []
-  const favoriteIds = favoritesData?.map(f => f.tmdb_movie_id) || []
+  const watchlistIds = watchlistData?.list_movies?.map(m => ({ id: m.tmdb_movie_id, type: m.media_type || 'movie' })) || []
+  const favoriteIds = favoritesData?.map(f => ({ id: f.tmdb_movie_id, type: f.media_type || 'movie' })) || []
   const isOwnProfile = user?.id === username
+  const topFavoriteId = profileData?.background_movie_id || favoriteIds[0]?.id
+  const topFavoriteType = profileData?.background_movie_id ? (profileData.background_media_type || 'movie') : (favoriteIds[0]?.type || 'movie')
+
+  const { data: topFavoriteMovie } = useQuery({
+    queryKey: ['movie-details', topFavoriteType, topFavoriteId],
+    queryFn: async () => {
+      if (!topFavoriteId) return null
+      const res = await (topFavoriteType === 'tv' ? tmdbService.getTvDetails(topFavoriteId) : tmdbService.getMovieDetails(topFavoriteId))
+      return res.data
+    },
+    enabled: !!topFavoriteId,
+  })
 
   const handleFollow = async () => {
     await supabase.from('follows').insert({ follower_id: user.id, following_id: username })
@@ -214,10 +226,27 @@ export default function Profile() {
   }
 
   return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--bg)', position: 'relative' }}>
+        {topFavoriteMovie?.backdrop_path && (
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '65vh', overflow: 'hidden', zIndex: 0, pointerEvents: 'none' }}>
+                <img 
+                    src={`https://image.tmdb.org/t/p/original${topFavoriteMovie.backdrop_path}`} 
+                    alt="" 
+                    style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        objectFit: 'cover', 
+                        opacity: 0.35, 
+                        maskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)', 
+                        WebkitMaskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)' 
+                    }} 
+                />
+            </div>
+        )}
+
         <Navbar />
 
-        <div style={{ width: '100%', maxWidth: '1024px', margin: '0 auto', padding: '5rem 2rem 4rem 2rem' }}>
+        <div style={{ width: '100%', maxWidth: '1024px', margin: '0 auto', padding: '5rem 2rem 4rem 2rem', position: 'relative', zIndex: 1 }}>
 
           {/* Header */}
           <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: '2.5rem' }}>
@@ -300,19 +329,22 @@ export default function Profile() {
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Aún no hay reseñas.</p>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                      {reviewsData?.map(review => (
-                          <div key={review.id} onClick={() => navigate(`/movie/${review.tmdb_movie_id}`)}
+                      {reviewsData?.map(review => {
+                          const mediaType = review.media_type || 'movie'
+                          const idKey = `${mediaType}-${review.tmdb_movie_id}`
+                          return (
+                          <div key={review.id} onClick={() => navigate(`/${mediaType}/${review.tmdb_movie_id}`)}
                                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '6px', padding: '1.25rem', cursor: 'pointer', display: 'flex', gap: '1rem', alignItems: 'flex-start', transition: 'border-color 0.2s' }}
                                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent)'}
                                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}>
-                            {posters[review.tmdb_movie_id] && (
-                                <img src={`https://image.tmdb.org/t/p/w92${posters[review.tmdb_movie_id]}`} alt=""
+                            {posters[idKey] && (
+                                <img src={`https://image.tmdb.org/t/p/w92${posters[idKey]}`} alt=""
                                      style={{ width: '46px', borderRadius: '3px', flexShrink: 0 }} />
                             )}
                             <div style={{ flex: 1 }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                                 <div>
-                                  <p style={{ fontWeight: 600, fontSize: '0.95rem' }}>{titles[review.tmdb_movie_id] || '...'}</p>
+                                  <p style={{ fontWeight: 600, fontSize: '0.95rem' }}>{titles[idKey] || '...'}</p>
                                   <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '0.9rem' }}>★ {review.rating}/10</span>
                                 </div>
                                 <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', flexShrink: 0 }}>
@@ -322,17 +354,17 @@ export default function Profile() {
                               {review.content && <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', lineHeight: 1.6 }}>{review.content}</p>}
                             </div>
                           </div>
-                      ))}
+                      )})}
                     </div>
                 )
             )}
 
             {activeTab === 'watchlist' && (
-                <MovieGrid movieIds={watchlistIds} emptyText="La watchlist está vacía." />
+                <MovieGrid items={watchlistIds} emptyText="La watchlist está vacía." />
             )}
 
             {activeTab === 'favoritas' && (
-                <MovieGrid movieIds={favoriteIds} emptyText="No hay películas favoritas aún." />
+                <MovieGrid items={favoriteIds} emptyText="No hay películas favoritas aún." />
             )}
           </div>
         </div>

@@ -36,11 +36,11 @@ export default function Movie({ type = 'movie' }) {
     })
 
     const { data: watchlistData } = useQuery({
-        queryKey: ['watchlist', id, user?.id],
+        queryKey: ['watchlist', id, type, user?.id],
         queryFn: async () => {
             const { data } = await supabase
                 .from('lists')
-                .select('id, list_movies(tmdb_movie_id)')
+                .select('id, list_movies(tmdb_movie_id, media_type)')
                 .eq('user_id', user.id)
                 .eq('name', 'Watchlist')
                 .maybeSingle()
@@ -50,32 +50,34 @@ export default function Movie({ type = 'movie' }) {
     })
 
     const { data: favoriteData } = useQuery({
-        queryKey: ['favorite', id, user?.id],
+        queryKey: ['favorite', id, type, user?.id],
         queryFn: async () => {
             const { data } = await supabase
                 .from('favorite_movies')
                 .select('user_id')
                 .eq('user_id', user.id)
                 .eq('tmdb_movie_id', parseInt(id))
+                .eq('media_type', type)
             return data
         },
         enabled: !!user,
     })
 
     const { data: reviewsData, refetch: refetchReviews } = useQuery({
-        queryKey: ['movie-reviews', id],
+        queryKey: ['movie-reviews', id, type],
         queryFn: async () => {
             const { data } = await supabase
                 .from('reviews')
                 .select('*, profiles!reviews_user_id_fkey(username, avatar_url)')
                 .eq('tmdb_movie_id', parseInt(id))
+                .eq('media_type', type)
                 .order('created_at', { ascending: false })
             return data
         },
     })
 
     const { data: likesData, refetch: refetchLikes } = useQuery({
-        queryKey: ['review-likes', id],
+        queryKey: ['review-likes', id, type],
         queryFn: async () => {
             const reviewIds = reviewsData?.map(r => r.id) || []
             if (!reviewIds.length) return []
@@ -89,12 +91,13 @@ export default function Movie({ type = 'movie' }) {
     })
 
     const { data: userReviewData } = useQuery({
-        queryKey: ['user-review', id, user?.id],
+        queryKey: ['user-review', id, type, user?.id],
         queryFn: async () => {
             const { data } = await supabase
                 .from('reviews')
                 .select('id')
                 .eq('tmdb_movie_id', parseInt(id))
+                .eq('media_type', type)
                 .eq('user_id', user.id)
             return data
         },
@@ -103,7 +106,7 @@ export default function Movie({ type = 'movie' }) {
 
     const hasReviewed = userReviewData && userReviewData.length > 0
     const isFavorite = favoriteData && favoriteData.length > 0
-    const isInWatchlist = watchlistData?.list_movies?.some(m => m.tmdb_movie_id === parseInt(id))
+    const isInWatchlist = watchlistData?.list_movies?.some(m => m.tmdb_movie_id === parseInt(id) && (m.media_type || 'movie') === type)
 
     const toggleWatchlist = async () => {
         if (!user) return
@@ -118,22 +121,22 @@ export default function Movie({ type = 'movie' }) {
         }
         if (isInWatchlist) {
             await supabase.from('list_movies').delete()
-                .eq('list_id', listId).eq('tmdb_movie_id', parseInt(id))
+                .eq('list_id', listId).eq('tmdb_movie_id', parseInt(id)).eq('media_type', type)
         } else {
-            await supabase.from('list_movies').insert({ list_id: listId, tmdb_movie_id: parseInt(id) })
+            await supabase.from('list_movies').insert({ list_id: listId, tmdb_movie_id: parseInt(id), media_type: type })
         }
-        queryClient.invalidateQueries(['watchlist', id, user?.id])
+        queryClient.invalidateQueries(['watchlist', id, type, user?.id])
     }
 
     const toggleFavorite = async () => {
         if (!user) return
         if (isFavorite) {
             await supabase.from('favorite_movies').delete()
-                .eq('user_id', user.id).eq('tmdb_movie_id', parseInt(id))
+                .eq('user_id', user.id).eq('tmdb_movie_id', parseInt(id)).eq('media_type', type)
         } else {
-            await supabase.from('favorite_movies').insert({ user_id: user.id, tmdb_movie_id: parseInt(id) })
+            await supabase.from('favorite_movies').insert({ user_id: user.id, tmdb_movie_id: parseInt(id), media_type: type })
         }
-        queryClient.invalidateQueries(['favorite', id, user?.id])
+        queryClient.invalidateQueries(['favorite', id, type, user?.id])
     }
 
     const handleVote = async (reviewId, isLike) => {
@@ -423,11 +426,11 @@ export default function Movie({ type = 'movie' }) {
 
             {showReviewModal && (
                 <ReviewModal
-                    movie={{ ...movie, title: title }}
+                    movie={{ ...movie, title: title, media_type: type }}
                     onClose={() => setShowReviewModal(false)}
                     onSuccess={() => {
                         refetchReviews()
-                        queryClient.invalidateQueries(['user-review', id, user?.id])
+                        queryClient.invalidateQueries(['user-review', id, type, user?.id])
                     }}
                 />
             )}

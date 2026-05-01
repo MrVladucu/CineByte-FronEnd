@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import Navbar from '../components/Navbar'
+import { useMovieTitles } from '../hooks/useMovieTitles'
 
 export default function EditProfile() {
     const { user } = useAuth()
@@ -13,6 +14,7 @@ export default function EditProfile() {
     const [bio, setBio] = useState('')
     const [avatarUrl, setAvatarUrl] = useState('')
     const [email, setEmail] = useState('')
+    const [backgroundMovieId, setBackgroundMovieId] = useState('')
 
     const [currentPassword, setCurrentPassword] = useState('')
     const [newPassword, setNewPassword] = useState('')
@@ -38,18 +40,50 @@ export default function EditProfile() {
             setBio(data.bio || '')
             setAvatarUrl(data.avatar_url || '')
             setEmail(user.email || '')
+            const bgId = data.background_movie_id ? `${data.background_media_type || 'movie'}-${data.background_movie_id}` : ''
+            setBackgroundMovieId(bgId)
             return data
         },
         enabled: !!user,
     })
 
+    const { data: favoritesData } = useQuery({
+        queryKey: ['profile-favorites', user?.id],
+        queryFn: async () => {
+            const { data } = await supabase
+                .from('favorite_movies')
+                .select('tmdb_movie_id, media_type')
+                .eq('user_id', user.id)
+                .order('added_at', { ascending: false })
+            return data
+        },
+        enabled: !!user,
+    })
+
+    const favoriteItems = favoritesData?.map(f => ({ id: f.tmdb_movie_id, type: f.media_type || 'movie' })) || []
+    const { titles } = useMovieTitles(favoriteItems)
+
     const handleSaveProfile = async () => {
         setLoadingProfile(true)
         setProfileMsg(null)
 
+        let bgMovieId = null
+        let bgMediaType = 'movie'
+        if (backgroundMovieId) {
+            const parts = backgroundMovieId.split('-')
+            bgMediaType = parts[0]
+            bgMovieId = parseInt(parts[1])
+        }
+
         const { error } = await supabase
             .from('profiles')
-            .update({ username, bio, avatar_url: avatarUrl })
+            .update({ 
+                username, 
+                bio, 
+                avatar_url: avatarUrl,
+                background_movie_id: bgMovieId,
+                background_media_type: bgMediaType
+            })
             .eq('id', user.id)
 
         setLoadingProfile(false)
@@ -253,7 +287,7 @@ export default function EditProfile() {
                         />
                     </div>
 
-                    <div>
+                    <div style={{ marginBottom: '1.25rem' }}>
                         <label style={labelStyle}>Biografía</label>
                         <textarea
                             value={bio}
@@ -262,6 +296,28 @@ export default function EditProfile() {
                             placeholder="Cuéntanos algo sobre ti..."
                             style={{ ...inputStyle, resize: 'vertical' }}
                         />
+                    </div>
+
+                    <div style={{ marginBottom: '1.25rem' }}>
+                        <label style={labelStyle}>Película Favorita (Fondo de Perfil)</label>
+                        <select
+                            value={backgroundMovieId}
+                            onChange={e => setBackgroundMovieId(e.target.value)}
+                            style={inputStyle}
+                        >
+                            <option value="">-- Sin fondo personalizado --</option>
+                            {favoriteItems.map(item => {
+                                const idKey = `${item.type}-${item.id}`
+                                return (
+                                    <option key={idKey} value={idKey}>
+                                        {titles[idKey] || `${item.type === 'tv' ? 'Serie' : 'Película'} #${item.id}`}
+                                    </option>
+                                )
+                            })}
+                        </select>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>
+                            Elige una película de tu lista de "Favoritas" para que su imagen adorne el fondo de tu perfil.
+                        </p>
                     </div>
 
                     {btnPrimary('GUARDAR PERFIL', handleSaveProfile, loadingProfile)}
