@@ -74,7 +74,7 @@ export default function Home() {
         return (
             <div style={{ position: 'relative', height: '70vh', overflow: 'hidden' }}>
                 {backdropUrl && (
-                    <img src={backdropUrl} alt={title} style={{ opacity: 0.4, width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={backdropUrl} alt={title} style={{ opacity: 0.4, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
                 )}
                 <div style={{
                     position: 'absolute', inset: 0,

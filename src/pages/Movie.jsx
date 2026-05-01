@@ -214,7 +214,7 @@ export default function Movie({ type = 'movie' }) {
             {/* Hero backdrop */}
             <div style={{ position: 'relative', height: '70vh', marginTop: '64px', overflow: 'hidden' }}>
                 {backdropUrl && (
-                    <img src={backdropUrl} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.4 }} />
+                    <img src={backdropUrl} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', opacity: 0.4 }} />
                 )}
                 <div style={{
                     position: 'absolute', inset: 0,
