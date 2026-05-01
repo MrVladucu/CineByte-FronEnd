@@ -30,6 +30,11 @@ export default function Movie({ type = 'movie' }) {
         queryFn: () => type === 'tv' ? tmdbService.getTvCredits(id) : tmdbService.getMovieCredits(id),
     })
 
+    const { data: providersData } = useQuery({
+        queryKey: [`${type}-providers`, id],
+        queryFn: () => type === 'tv' ? tmdbService.getTvProviders(id) : tmdbService.getMovieProviders(id),
+    })
+
     const { data: similarData } = useQuery({
         queryKey: [`${type}-similar`, id],
         queryFn: () => type === 'tv' ? tmdbService.getSimilarTv(id) : tmdbService.getSimilarMovies(id),
@@ -296,6 +301,9 @@ export default function Movie({ type = 'movie' }) {
                     </div>
                 </div>
 
+                <div style={{ display: 'flex', gap: '3rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: '0' }}>
+
                 {/* Cast */}
                 {cast.length > 0 && (
                     <div style={{ marginTop: '5rem' }}>
@@ -413,6 +421,83 @@ export default function Movie({ type = 'movie' }) {
                         </div>
                     </div>
                 )}
+                </div>
+
+                {/* Stats Sidebar */}
+                <div style={{ width: '320px', flexShrink: 0, background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border)', padding: '2rem', position: 'sticky', top: '100px' }}>
+                    <h3 style={{ fontFamily: 'Bebas Neue', fontSize: '1.4rem', letterSpacing: '0.08em', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ display: 'inline-block', width: '4px', height: '1.2rem', background: 'var(--accent)', borderRadius: '2px' }} />
+                        INFORMACIÓN
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                        {/* Providers */}
+                        {(() => {
+                            const countryData = providersData?.data?.results?.ES || providersData?.data?.results?.US
+                            const flatrate = countryData?.flatrate || []
+                            if (flatrate.length === 0) return null
+                            return (
+                                <div style={{ marginBottom: '1rem' }}>
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Dónde Ver</p>
+                                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                        {flatrate.map(provider => (
+                                            <img 
+                                                key={provider.provider_id} 
+                                                src={`https://image.tmdb.org/t/p/original${provider.logo_path}`} 
+                                                alt={provider.provider_name} 
+                                                title={provider.provider_name}
+                                                style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1px solid var(--border)' }} 
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )
+                        })()}
+
+                        {movie.status && (
+                            <div>
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Estado</p>
+                                <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>{movie.status}</p>
+                            </div>
+                        )}
+                        {movie.original_language && (
+                            <div>
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Idioma Original</p>
+                                <p style={{ fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase' }}>{movie.original_language}</p>
+                            </div>
+                        )}
+                        {type === 'movie' && movie.budget > 0 && (
+                            <div>
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Presupuesto</p>
+                                <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>${movie.budget.toLocaleString()}</p>
+                            </div>
+                        )}
+                        {type === 'movie' && movie.revenue > 0 && (
+                            <div>
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Recaudación</p>
+                                <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>${movie.revenue.toLocaleString()}</p>
+                            </div>
+                        )}
+                        {type === 'tv' && movie.networks && movie.networks.length > 0 && (
+                            <div>
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Cadena</p>
+                                <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>{movie.networks.map(n => n.name).join(', ')}</p>
+                            </div>
+                        )}
+                        {type === 'tv' && movie.number_of_seasons > 0 && (
+                            <div>
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Temporadas</p>
+                                <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>{movie.number_of_seasons}</p>
+                            </div>
+                        )}
+                        {type === 'tv' && movie.number_of_episodes > 0 && (
+                            <div>
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Episodios</p>
+                                <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>{movie.number_of_episodes}</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
             </div>
 
             {showTrailer && trailer && (

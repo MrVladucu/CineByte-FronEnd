@@ -72,3 +72,12 @@ h1, h2, h3, .display {
   text-shadow: 0 0 15px rgba(229, 27, 35, 0.8);
   transform: scale(1.05);
 }
+
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page-transition-enter {
+  animation: pageFadeIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}

@@ -12,28 +12,34 @@ export const tmdbService = {
 
   getTrendingMovies: () =>
     api.get(`/api/tmdb/movies/trending`),
+getMovieCredits: (id) =>
+  api.get(`/api/tmdb/movies/${id}/credits`),
 
-  getMovieCredits: (id) =>
-    api.get(`/api/tmdb/movies/${id}/credits`),
+getMovieProviders: (id) =>
+  api.get(`/api/tmdb/movies/${id}/providers`),
 
-  getSimilarMovies: (id) =>
-    api.get(`/api/tmdb/movies/${id}/similar`),
+getSimilarMovies: (id) =>
+  api.get(`/api/tmdb/movies/${id}/similar`),
 
-  getMovieGenres: () =>
-    api.get(`/api/tmdb/genres`),
+getMovieGenres: () =>
+  api.get(`/api/tmdb/movies/genres`),
 
-  discoverMovies: (genreId, sortBy, page = 1) =>
-    api.get(`/api/tmdb/discover`, { params: { genreId, sortBy, page } }),
+discoverMovies: (genre, sort, page = 1) =>
+  api.get(`/api/tmdb/movies/discover`, { params: { genre, sort, page } }),
 
-  getTrendingTv: () =>
-    api.get(`/api/tmdb/tv/trending`),
+// --- TV SHOWS ---
+getTrendingTv: () =>
+  api.get(`/api/tmdb/tv/trending`),
 
-  getTvDetails: (id) =>
-    api.get(`/api/tmdb/tv/${id}`),
+getTvDetails: (id) =>
+  api.get(`/api/tmdb/tv/${id}`),
 
-  getTvCredits: (id) =>
-    api.get(`/api/tmdb/tv/${id}/credits`),
+getTvCredits: (id) =>
+  api.get(`/api/tmdb/tv/${id}/credits`),
 
-  getSimilarTv: (id) =>
-    api.get(`/api/tmdb/tv/${id}/similar`),
+getTvProviders: (id) =>
+  api.get(`/api/tmdb/tv/${id}/providers`),
+
+getSimilarTv: (id) =>
+  api.get(`/api/tmdb/tv/${id}/similar`),
 }
