@@ -181,8 +181,8 @@ export default function Movie({ type = 'movie' }) {
                     <div style={{ display: 'flex', gap: '2rem', marginTop: '2rem' }}>
                         <Skeleton width="220px" height="330px" borderRadius="8px" />
                         <div style={{ flex: 1 }}>
-                            <Skeleton width="60%" height="3rem" marginBottom="1rem" />
-                            <Skeleton width="40%" height="1.5rem" marginBottom="2rem" />
+                            <Skeleton width="60%" height="3rem" style={{ marginBottom: '1rem' }} />
+                            <Skeleton width="40%" height="1.5rem" style={{ marginBottom: '2rem' }} />
                             <Skeleton width="100%" height="10rem" />
                         </div>
                     </div>

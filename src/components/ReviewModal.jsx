@@ -76,8 +76,8 @@ export default function ReviewModal({ movie, onClose, onSuccess }) {
       visible={true} 
       onHide={onClose} 
       header={headerElement}
-      style={{ width: '90vw', maxWidth: '480px' }}
-      breakpoints={{ '960px': '75vw', '641px': '100vw' }}
+      style={{ width: '90vw', maxWidth: '480px', margin: '0 1rem' }}
+      breakpoints={{ '640px': '95vw' }}
       draggable={false}
       resizable={false}
       className="review-dialog"
