@@ -6,6 +6,7 @@ import Register from './pages/Register'
 import Movie from './pages/Movie'
 import Profile from './pages/Profile'
 import Search from './pages/Search'
+import Footer from './components/Footer'
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth()
@@ -17,15 +18,18 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-        <Route path="/movie/:id" element={<ProtectedRoute><Movie type="movie" /></ProtectedRoute>} />
-        <Route path="/tv/:id" element={<ProtectedRoute><Movie type="tv" /></ProtectedRoute>} />
-        <Route path="/profile/:username" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
-      </Routes>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+          <Route path="/movie/:id" element={<ProtectedRoute><Movie type="movie" /></ProtectedRoute>} />
+          <Route path="/tv/:id" element={<ProtectedRoute><Movie type="tv" /></ProtectedRoute>} />
+          <Route path="/profile/:username" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
+        </Routes>
+        <Footer />
+      </div>
     </BrowserRouter>
   )
 
