@@ -205,6 +205,7 @@ export default function Movie({ type = 'movie' }) {
     const releaseDate = movie.release_date || movie.first_air_date;
     const runtime = movie.runtime || (movie.episode_run_time && movie.episode_run_time[0]);
     const trailer = movie.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube') || movie.videos?.results?.find(v => v.site === 'YouTube');
+    const cinebyteAverage = reviewsData?.length ? (reviewsData.reduce((acc, curr) => acc + curr.rating, 0) / reviewsData.length).toFixed(1) : null;
 
     return (
         <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -246,20 +247,36 @@ export default function Movie({ type = 'movie' }) {
 
                         <div style={{ display: 'flex', gap: '2rem', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap' }}>
                             {movie.vote_average > 0 && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <Rating value={Math.round(movie.vote_average)} readOnly stars={10} cancel={false} style={{ fontSize: '0.9rem' }} />
-                                    <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '1.2rem' }}>{movie.vote_average.toFixed(1)}</span>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                    <span style={{ fontSize: '0.65rem', letterSpacing: '0.1em', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>TMDB</span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <Rating value={Math.round(movie.vote_average)} readOnly stars={10} cancel={false} style={{ fontSize: '0.9rem' }} />
+                                        <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '1.2rem' }}>{movie.vote_average.toFixed(1)}</span>
+                                    </div>
                                 </div>
                             )}
-                            {releaseDate && <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>{releaseDate.split('-')[0]}</span>}
-                            {runtime > 0 && (
-                                <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>{Math.floor(runtime / 60)}h {runtime % 60}m</span>
+
+                            {cinebyteAverage && (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', paddingLeft: '2rem', borderLeft: '1px solid var(--border)' }}>
+                                    <span style={{ fontSize: '0.65rem', letterSpacing: '0.1em', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>CINEBYTE</span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <Rating value={Math.round(cinebyteAverage)} readOnly stars={10} cancel={false} style={{ fontSize: '0.9rem' }} />
+                                        <span style={{ color: 'var(--text)', fontWeight: 700, fontSize: '1.2rem' }}>{cinebyteAverage}</span>
+                                    </div>
+                                </div>
                             )}
-                            {director && (
-                                <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>
-                                    {type === 'tv' ? 'CREADOR ' : 'DIR. '} <span style={{ color: 'var(--text)' }}>{director.name}</span>
-                                </span>
-                            )}
+                            
+                            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', paddingLeft: (movie.vote_average > 0 || cinebyteAverage) ? '2rem' : '0' }}>
+                                {releaseDate && <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>{releaseDate.split('-')[0]}</span>}
+                                {runtime > 0 && (
+                                    <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>{Math.floor(runtime / 60)}h {runtime % 60}m</span>
+                                )}
+                                {director && (
+                                    <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>
+                                        {type === 'tv' ? 'CREADOR ' : 'DIR. '} <span style={{ color: 'var(--text)' }}>{director.name}</span>
+                                    </span>
+                                )}
+                            </div>
                         </div>
 
                         <p style={{ color: 'var(--text-muted)', lineHeight: 1.8, fontSize: '1rem', maxWidth: '800px', marginBottom: '2.5rem' }}>
