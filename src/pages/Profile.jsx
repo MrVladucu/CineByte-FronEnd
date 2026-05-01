@@ -237,9 +237,13 @@ export default function Profile() {
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6, maxWidth: '500px', marginBottom: '1rem' }}>{profileData.bio}</p>
               )}
               {statsData && <XpBar xp={statsData.xp} level={statsData.level} />}
-              {!isOwnProfile && (
+              {!isOwnProfile ? (
                   <button onClick={handleFollow} style={{ marginTop: '1rem', background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.6rem 1.5rem', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer' }}>
                     + SEGUIR
+                  </button>
+              ) : (
+                  <button onClick={() => navigate('/profile/edit')} style={{ marginTop: '1rem', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-muted)', borderRadius: '4px', padding: '0.4rem 1rem', fontSize: '0.8rem', letterSpacing: '0.1em', cursor: 'pointer' }}>
+                    ✏ EDITAR PERFIL
                   </button>
               )}
             </div>

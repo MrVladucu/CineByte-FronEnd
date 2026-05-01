@@ -7,6 +7,8 @@ import Movie from './pages/Movie'
 import Profile from './pages/Profile'
 import Search from './pages/Search'
 import Footer from './components/Footer'
+import EditProfile from './pages/EditProfile'
+
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth()
@@ -27,6 +29,7 @@ export default function App() {
           <Route path="/tv/:id" element={<ProtectedRoute><Movie type="tv" /></ProtectedRoute>} />
           <Route path="/profile/:username" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
+          <Route path="/profile/edit" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
         </Routes>
         <Footer />
       </div>
