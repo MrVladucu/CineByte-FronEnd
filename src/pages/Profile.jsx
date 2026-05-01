@@ -184,8 +184,8 @@ export default function Profile() {
   const watchlistIds = watchlistData?.list_movies?.map(m => ({ id: m.tmdb_movie_id, type: m.media_type || 'movie' })) || []
   const favoriteIds = favoritesData?.map(f => ({ id: f.tmdb_movie_id, type: f.media_type || 'movie' })) || []
   const isOwnProfile = user?.id === username
-  const topFavoriteId = profileData?.background_movie_id || favoriteIds[0]?.id
-  const topFavoriteType = profileData?.background_movie_id ? (profileData.background_media_type || 'movie') : (favoriteIds[0]?.type || 'movie')
+  const topFavoriteId = profileData?.background_movie_id
+  const topFavoriteType = profileData?.background_media_type || 'movie'
 
   const { data: topFavoriteMovie } = useQuery({
     queryKey: ['movie-details', topFavoriteType, topFavoriteId],
