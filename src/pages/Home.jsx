@@ -3,12 +3,73 @@ import { useNavigate, Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import MovieCard from "../components/Moviecard"
 import { tmdbService } from '../services/tmdb'
+import { getMovieNews } from '../services/api'
 import { Carousel } from 'primereact/carousel'
 import { Skeleton } from 'primereact/skeleton'
 import { Button } from 'primereact/button'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useMovieTitles } from '../hooks/useMovieTitles'
+
+function NewsSection() {
+    const { data, isLoading } = useQuery({
+        queryKey: ['movie-news'],
+        queryFn: getMovieNews
+    })
+
+    const articles = data?.data?.articles || []
+
+    if (isLoading) {
+        return (
+            <section style={{ marginBottom: '4rem' }}>
+                <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.6rem', letterSpacing: '0.08em', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text)' }}>
+                    <span style={{ display: 'inline-block', width: '4px', height: '1.4rem', background: 'var(--accent)', borderRadius: '2px' }} />
+                    NOTICIAS DE CINE
+                </h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                    {[0, 1, 2, 3].map(i => (
+                        <Skeleton key={i} shape="rectangle" width="100%" height="200px" borderRadius="8px" />
+                    ))}
+                </div>
+            </section>
+        )
+    }
+
+    if (articles.length === 0) return null;
+
+    return (
+        <section style={{ marginBottom: '4rem' }}>
+            <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.6rem', letterSpacing: '0.08em', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text)' }}>
+                <span style={{ display: 'inline-block', width: '4px', height: '1.4rem', background: 'var(--accent)', borderRadius: '2px' }} />
+                NOTICIAS DE CINE
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                {articles.slice(0, 8).map((article, idx) => (
+                    <a key={idx} href={article.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+                        <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden', transition: 'transform 0.2s, box-shadow 0.2s', height: '100%', display: 'flex', flexDirection: 'column' }} onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)'; e.currentTarget.style.borderColor = 'var(--accent)'; }} onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'var(--border)'; }}>
+                            <div style={{ width: '100%', height: '160px', background: 'var(--border)', position: 'relative' }}>
+                                {article.image && (
+                                    <img src={article.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+                                )}
+                            </div>
+                            <div style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                <p style={{ fontSize: '0.7rem', color: 'var(--accent)', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '0.5rem', textTransform: 'uppercase' }}>
+                                    {article.source?.name || 'NOTICIA'} · {new Date(article.publishedAt).toLocaleDateString()}
+                                </p>
+                                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: '0 0 0.75rem 0', lineHeight: 1.4, color: 'var(--text)' }}>
+                                    {article.title}
+                                </h3>
+                                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', flex: 1 }}>
+                                    {article.description}
+                                </p>
+                            </div>
+                        </div>
+                    </a>
+                ))}
+            </div>
+        </section>
+    )
+}
 
 function MovieSection({ title, queryKey, queryFn, type = 'movie' }) {
     const { data, isLoading } = useQuery({ queryKey, queryFn })
@@ -217,6 +278,7 @@ export default function Home() {
                 <MovieSection title="Películas en tendencia" queryKey={['trending-movies']} queryFn={tmdbService.getTrendingMovies} type="movie" />
                 <MovieSection title="Series en tendencia" queryKey={['trending-tv']} queryFn={tmdbService.getTrendingTv} type="tv" />
                 <MovieSection title="Populares ahora" queryKey={['popular-movies']} queryFn={() => tmdbService.getPopularMovies(1)} type="movie" />
+                <NewsSection />
             </div>
 
             <style>{`

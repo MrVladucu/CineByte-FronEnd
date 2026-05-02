@@ -5,7 +5,7 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
 })
 
-// Añadir el token de Supabase en cada petición automáticamente
+//Esto para anadir el token de Supabase en cada petición automáticamente
 api.interceptors.request.use(async (config) => {
   const { data: { session } } = await supabase.auth.getSession()
   if (session) {
@@ -13,5 +13,7 @@ api.interceptors.request.use(async (config) => {
   }
   return config
 })
+
+export const getMovieNews = () => api.get('/api/news')
 
 export default api
