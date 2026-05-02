@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import Navbar from '../components/Navbar'
@@ -152,6 +152,54 @@ export default function Profile() {
     enabled: !!profileData,
   })
 
+  const isOwnProfile = user?.id === username
+
+  const { data: isFollowing, refetch: refetchIsFollowing } = useQuery({
+    queryKey: ['isFollowing', user?.id, username],
+    queryFn: async () => {
+      const { data } = await supabase.from('follows').select('follower_id').eq('follower_id', user.id).eq('following_id', username).maybeSingle()
+      return !!data
+    },
+    enabled: !!user && !!profileData && !isOwnProfile,
+  })
+
+  const queryClient = useQueryClient()
+
+  const handleFollow = async () => {
+    if (!user) {
+      navigate('/login')
+      return
+    }
+
+    if (isFollowing) {
+      // Unfollow
+      const { error } = await supabase.from('follows').delete().eq('follower_id', user.id).eq('following_id', username)
+      if (!error) {
+        refetchIsFollowing()
+        queryClient.invalidateQueries({ queryKey: ['followers', username] })
+      }
+    } else {
+      // Follow
+      const { error } = await supabase.from('follows').insert({ follower_id: user.id, following_id: username })
+      if (!error) {
+        // Fetch current user's profile to get their name for the notification
+        const { data: myProfile } = await supabase.from('profiles').select('username').eq('id', user.id).single()
+        
+        // Insert Notification
+        if (myProfile) {
+          await supabase.from('notifications').insert({
+            user_id: username,
+            type: 'NEW_FOLLOWER',
+            message: `El usuario ${myProfile.username} ha empezado a seguirte.`
+          })
+        }
+        
+        refetchIsFollowing()
+        queryClient.invalidateQueries({ queryKey: ['followers', username] })
+      }
+    }
+  }
+
   const { data: watchlistData } = useQuery({
     queryKey: ['profile-watchlist', username],
     queryFn: async () => {
@@ -183,7 +231,6 @@ export default function Profile() {
   const { titles, posters } = useMovieTitles(movieIds)
   const watchlistIds = watchlistData?.list_movies?.map(m => ({ id: m.tmdb_movie_id, type: m.media_type || 'movie' })) || []
   const favoriteIds = favoritesData?.map(f => ({ id: f.tmdb_movie_id, type: f.media_type || 'movie' })) || []
-  const isOwnProfile = user?.id === username
   const topFavoriteId = profileData?.background_movie_id
   const topFavoriteType = profileData?.background_media_type || 'movie'
 
@@ -196,10 +243,6 @@ export default function Profile() {
     },
     enabled: !!topFavoriteId,
   })
-
-  const handleFollow = async () => {
-    await supabase.from('follows').insert({ follower_id: user.id, following_id: username })
-  }
 
   const tabs = [
     { id: 'reseñas', label: `Reseñas (${reviewsData?.length || 0})` },
@@ -235,7 +278,8 @@ export default function Profile() {
                     style={{ 
                         width: '100%', 
                         height: '100%', 
-                        objectFit: 'cover', 
+                        objectFit: 'cover',
+                        objectPosition: 'top',
                         opacity: 0.35, 
                         maskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)', 
                         WebkitMaskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)' 
@@ -267,8 +311,42 @@ export default function Profile() {
               )}
               {statsData && <XpBar xp={statsData.xp} level={statsData.level} />}
               {!isOwnProfile ? (
-                  <button onClick={handleFollow} style={{ marginTop: '1rem', background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.6rem 1.5rem', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer' }}>
-                    + SEGUIR
+                  <button 
+                    onClick={handleFollow} 
+                    style={{ 
+                      marginTop: '1rem', 
+                      background: isFollowing ? 'transparent' : 'var(--accent)', 
+                      color: isFollowing ? 'var(--text)' : 'white', 
+                      border: isFollowing ? '1px solid var(--border)' : 'none', 
+                      borderRadius: '4px', 
+                      padding: '0.6rem 1.5rem', 
+                      fontSize: '0.8rem', 
+                      fontWeight: 600, 
+                      letterSpacing: '0.1em', 
+                      textTransform: 'uppercase', 
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={e => {
+                      if (isFollowing) {
+                        e.currentTarget.style.color = 'var(--accent)';
+                        e.currentTarget.style.borderColor = 'var(--accent)';
+                        e.currentTarget.innerText = 'DEJAR DE SEGUIR';
+                      } else {
+                        e.currentTarget.style.background = 'var(--accent-hover)';
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      if (isFollowing) {
+                        e.currentTarget.style.color = 'var(--text)';
+                        e.currentTarget.style.borderColor = 'var(--border)';
+                        e.currentTarget.innerText = 'SIGUIENDO';
+                      } else {
+                        e.currentTarget.style.background = 'var(--accent)';
+                      }
+                    }}
+                  >
+                    {isFollowing ? 'SIGUIENDO' : '+ SEGUIR'}
                   </button>
               ) : (
                   <button onClick={() => navigate('/profile/edit')} style={{ marginTop: '1rem', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-muted)', borderRadius: '4px', padding: '0.4rem 1rem', fontSize: '0.8rem', letterSpacing: '0.1em', cursor: 'pointer' }}>

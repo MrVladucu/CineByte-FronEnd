@@ -271,12 +271,13 @@ export default function Navbar() {
         {/* Nav links */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexShrink: 0 }}>
           <Button 
+            className="theme-button-hover"
             icon={theme === 'dark' ? 'pi pi-sun' : 'pi pi-moon'} 
             rounded 
             text 
             aria-label="Toggle Theme" 
             onClick={toggleTheme}
-            style={{ color: 'var(--text-muted)', width: '2.5rem', height: '2.5rem' }}
+            style={{ color: 'var(--text-muted)', width: '2.5rem', height: '2.5rem', boxShadow: 'none', outline: 'none' }}
           />
 
           {user && (
@@ -287,7 +288,7 @@ export default function Navbar() {
                 text 
                 aria-label="Notifications" 
                 onClick={handleToggleNotifications}
-                style={{ color: 'var(--text-muted)', width: '2.5rem', height: '2.5rem' }}
+                style={{ color: 'var(--text-muted)', width: '2.5rem', height: '2.5rem', boxShadow: 'none', outline: 'none' }}
               />
               {unreadCount > 0 && (
                 <span style={{

@@ -1,11 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import MovieCard from "../components/Moviecard"
 import { tmdbService } from '../services/tmdb'
 import { Carousel } from 'primereact/carousel'
 import { Skeleton } from 'primereact/skeleton'
 import { Button } from 'primereact/button'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../context/AuthContext'
+import { useMovieTitles } from '../hooks/useMovieTitles'
 
 function MovieSection({ title, queryKey, queryFn, type = 'movie' }) {
     const { data, isLoading } = useQuery({ queryKey, queryFn })
@@ -50,6 +53,81 @@ function MovieSection({ title, queryKey, queryFn, type = 'movie' }) {
                     circular={false}
                 />
             )}
+        </section>
+    )
+}
+
+function FriendsReviews() {
+    const { user } = useAuth()
+    const navigate = useNavigate()
+
+    const { data: reviews, isLoading } = useQuery({
+        queryKey: ['friends-reviews', user?.id],
+        queryFn: async () => {
+            if (!user) return []
+            const { data: follows } = await supabase.from('follows').select('following_id').eq('follower_id', user.id)
+            const followingIds = follows?.map(f => f.following_id) || []
+            if (followingIds.length === 0) return []
+
+            const { data } = await supabase
+                .from('reviews')
+                .select('id, rating, content, created_at, tmdb_movie_id, media_type, profiles!reviews_user_id_fkey(username, id)')
+                .in('user_id', followingIds)
+                .order('created_at', { ascending: false })
+                .limit(5)
+            return data || []
+        },
+        enabled: !!user
+    })
+
+    const movieIds = reviews?.map(r => ({ id: r.tmdb_movie_id, type: r.media_type || 'movie' })) || []
+    const { titles, posters } = useMovieTitles(movieIds)
+
+    if (!user || isLoading || !reviews || reviews.length === 0) return null
+
+    return (
+        <section style={{ marginBottom: '4rem' }}>
+            <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.6rem', letterSpacing: '0.08em', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text)' }}>
+                <span style={{ display: 'inline-block', width: '4px', height: '1.4rem', background: 'var(--accent)', borderRadius: '2px' }} />
+                RESEÑAS RECIENTES DE AMIGOS
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                {reviews.map(review => {
+                    const mediaType = review.media_type || 'movie'
+                    const idKey = `${mediaType}-${review.tmdb_movie_id}`
+                    return (
+                        <div key={review.id} style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '8px', padding: '1.25rem', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                            {posters[idKey] ? (
+                                <img 
+                                    src={`https://image.tmdb.org/t/p/w92${posters[idKey]}`} 
+                                    alt="" 
+                                    style={{ width: '60px', borderRadius: '4px', flexShrink: 0, cursor: 'pointer' }} 
+                                    onClick={() => navigate(`/${mediaType}/${review.tmdb_movie_id}`)}
+                                />
+                            ) : (
+                                <div style={{ width: '60px', height: '90px', background: 'var(--border)', borderRadius: '4px', flexShrink: 0 }} />
+                            )}
+                            <div style={{ flex: 1, overflow: 'hidden' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.25rem' }}>
+                                    <p style={{ fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }} onClick={() => navigate(`/${mediaType}/${review.tmdb_movie_id}`)}>
+                                        {titles[idKey] || '...'}
+                                    </p>
+                                    <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '0.85rem', flexShrink: 0, marginLeft: '0.5rem' }}>★ {review.rating}</span>
+                                </div>
+                                <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                                    por <Link to={`/profile/${review.profiles?.id}`} style={{ color: 'var(--text)', textDecoration: 'none', fontWeight: 500 }}>{review.profiles?.username}</Link>
+                                    {' · '}{new Date(review.created_at).toLocaleDateString()}
+                                </p>
+                                {review.content && (
+                                    <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                        "{review.content}"
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    )
+                })}
+            </div>
         </section>
     )
 }
@@ -134,13 +212,10 @@ export default function Home() {
             </div>
 
             {/* Secciones */}
-            <div style={{ width: '100%', maxWidth: '1550px', margin: '0 auto', padding: '0 2rem' }}>
+            <div style={{ width: '100%', maxWidth: '1550px', margin: '0 auto', padding: '0 2rem', marginTop: '2rem' }}>
+                <FriendsReviews />
                 <MovieSection title="Películas en tendencia" queryKey={['trending-movies']} queryFn={tmdbService.getTrendingMovies} type="movie" />
-            </div>
-            <div style={{ width: '100%', maxWidth: '1550px', margin: '0 auto', padding: '0 2rem' }}>
                 <MovieSection title="Series en tendencia" queryKey={['trending-tv']} queryFn={tmdbService.getTrendingTv} type="tv" />
-            </div>
-            <div style={{ width: '100%', maxWidth: '1550px', margin: '0 auto', padding: '0 2rem' }}>
                 <MovieSection title="Populares ahora" queryKey={['popular-movies']} queryFn={() => tmdbService.getPopularMovies(1)} type="movie" />
             </div>
 
