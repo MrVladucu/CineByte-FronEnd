@@ -31,7 +31,6 @@ getMovieGenres: () =>
 discoverMovies: (genre, sort, page = 1) =>
   api.get(`/api/tmdb/movies/discover`, { params: { genre, sort, page } }),
 
-// --- TV SHOWS ---
 getTrendingTv: () =>
   api.get(`/api/tmdb/tv/trending`),
 
@@ -46,4 +45,10 @@ getTvProviders: (id) =>
 
 getSimilarTv: (id) =>
   api.get(`/api/tmdb/tv/${id}/similar`),
+
+getPersonDetails: (id) =>
+  api.get(`/api/tmdb/person/${id}`),
+
+getPersonCombinedCredits: (id) =>
+  api.get(`/api/tmdb/person/${id}/combined_credits`),
 }

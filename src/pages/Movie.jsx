@@ -457,13 +457,22 @@ export default function Movie({ type = 'movie' }) {
                                     <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Dónde Ver</p>
                                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                                         {flatrate.map(provider => (
-                                            <img 
-                                                key={provider.provider_id} 
-                                                src={`https://image.tmdb.org/t/p/original${provider.logo_path}`} 
-                                                alt={provider.provider_name} 
-                                                title={provider.provider_name}
-                                                style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1px solid var(--border)' }} 
-                                            />
+                                            <a 
+                                                key={provider.provider_id}
+                                                href={countryData?.link || '#'}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={{ display: 'inline-block' }}
+                                            >
+                                                <img 
+                                                    src={`https://image.tmdb.org/t/p/original${provider.logo_path}`} 
+                                                    alt={provider.provider_name} 
+                                                    title={provider.provider_name}
+                                                    style={{ width: '40px', height: '40px', borderRadius: '8px', border: '1px solid var(--border)', transition: 'transform 0.2s', cursor: 'pointer' }} 
+                                                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                                                    onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                                />
+                                            </a>
                                         ))}
                                     </div>
                                 </div>

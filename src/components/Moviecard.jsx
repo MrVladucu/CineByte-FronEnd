@@ -4,18 +4,21 @@ import { Link } from 'react-router-dom'
 export default function MovieCard({ movie, type = 'movie' }) {
   const [isHovered, setIsHovered] = useState(false)
 
-  const posterUrl = movie.poster_path
-      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-      : null
+  const mediaType = movie.media_type || type
+  const isPerson = mediaType === 'person'
+
+  const posterUrl = isPerson 
+      ? (movie.profile_path ? `https://image.tmdb.org/t/p/w500${movie.profile_path}` : null)
+      : (movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null)
 
   const title = movie.title || movie.name
-  const releaseDate = movie.release_date || movie.first_air_date
-  const mediaType = movie.media_type || type
+  const releaseDate = isPerson ? movie.known_for_department : (movie.release_date || movie.first_air_date)
+  const linkPath = isPerson ? `/actor/${movie.id}` : `/${mediaType}/${movie.id}`
 
   return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', minWidth: 0 }}>
         <Link
-            to={`/${mediaType}/${movie.id}`}
+            to={linkPath}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             style={{
@@ -50,9 +53,11 @@ export default function MovieCard({ movie, type = 'movie' }) {
                 justifyContent: 'center',
                 background: 'var(--bg-elevated)',
                 color: 'var(--text-muted)',
-                fontSize: '0.75rem'
+                fontSize: '0.75rem',
+                flexDirection: 'column',
+                gap: '0.5rem'
               }}>
-                Sin imagen
+                {isPerson ? '👤' : 'Sin imagen'}
               </div>
           )}
 
@@ -75,7 +80,7 @@ export default function MovieCard({ movie, type = 'movie' }) {
             <p style={{ fontFamily: 'Bebas Neue', fontSize: '1rem', letterSpacing: '0.05em', color: 'white', lineHeight: 1.2, marginBottom: '0.25rem' }}>
               {title}
             </p>
-            {movie.vote_average > 0 && (
+            {!isPerson && movie.vote_average > 0 && (
                 <p style={{ color: 'var(--accent)', fontSize: '0.8rem', fontWeight: 500, margin: 0 }}>
                   ★ {movie.vote_average.toFixed(1)}
                 </p>
@@ -99,7 +104,7 @@ export default function MovieCard({ movie, type = 'movie' }) {
             {title}
           </p>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>
-            {releaseDate?.split('-')[0] || '----'}
+            {!isPerson ? (releaseDate?.split('-')[0] || '----') : releaseDate || '----'}
           </p>
         </div>
       </div>
