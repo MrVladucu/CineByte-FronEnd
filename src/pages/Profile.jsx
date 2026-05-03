@@ -185,7 +185,7 @@ export default function Profile() {
         // Fetch current user's profile to get their name for the notification
         const { data: myProfile } = await supabase.from('profiles').select('username').eq('id', user.id).single()
         
-        // Insert Notification
+        //  Notification
         if (myProfile) {
           await supabase.from('notifications').insert({
             user_id: username,
