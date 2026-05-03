@@ -46,6 +46,9 @@ getTvProviders: (id) =>
 getSimilarTv: (id) =>
   api.get(`/api/tmdb/tv/${id}/similar`),
 
+getTvSeason: (id, seasonNumber) =>
+  api.get(`/api/tmdb/tv/${id}/season/${seasonNumber}`),
+
 getPersonDetails: (id) =>
   api.get(`/api/tmdb/person/${id}`),
 

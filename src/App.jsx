@@ -7,6 +7,8 @@ import Movie from './pages/Movie'
 import Actor from './pages/Actor'
 import Profile from './pages/Profile'
 import Search from './pages/Search'
+import AllSeasons from './pages/AllSeasons'
+import SeasonDetails from './pages/SeasonDetails'
 import Footer from './components/Footer'
 import EditProfile from './pages/EditProfile'
 import AdminDashboard from './pages/AdminDashboard'
@@ -28,6 +30,8 @@ function AnimatedRoutes() {
         <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/movie/:id" element={<ProtectedRoute><Movie type="movie" /></ProtectedRoute>} />
         <Route path="/tv/:id" element={<ProtectedRoute><Movie type="tv" /></ProtectedRoute>} />
+        <Route path="/tv/:id/seasons" element={<ProtectedRoute><AllSeasons /></ProtectedRoute>} />
+        <Route path="/tv/:id/season/:seasonNumber" element={<ProtectedRoute><SeasonDetails /></ProtectedRoute>} />
         <Route path="/actor/:id" element={<ProtectedRoute><Actor /></ProtectedRoute>} />
         <Route path="/profile/:username" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />

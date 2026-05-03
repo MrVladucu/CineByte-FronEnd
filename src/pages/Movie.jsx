@@ -109,6 +109,19 @@ export default function Movie({ type = 'movie' }) {
         enabled: !!user,
     })
 
+    const { data: showEpisodeRatings } = useQuery({
+        queryKey: ['show-episode-ratings', id],
+        queryFn: async () => {
+            if (type !== 'tv') return []
+            const { data } = await supabase
+                .from('episode_ratings')
+                .select('rating')
+                .eq('show_id', parseInt(id))
+            return data || []
+        },
+        enabled: type === 'tv'
+    })
+
     const hasReviewed = userReviewData && userReviewData.length > 0
     const isFavorite = favoriteData && favoriteData.length > 0
     const isInWatchlist = watchlistData?.list_movies?.some(m => m.tmdb_movie_id === parseInt(id) && (m.media_type || 'movie') === type)
@@ -205,7 +218,13 @@ export default function Movie({ type = 'movie' }) {
     const releaseDate = movie.release_date || movie.first_air_date;
     const runtime = movie.runtime || (movie.episode_run_time && movie.episode_run_time[0]);
     const trailer = movie.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube') || movie.videos?.results?.find(v => v.site === 'YouTube');
-    const cinebyteAverage = reviewsData?.length ? (reviewsData.reduce((acc, curr) => acc + curr.rating, 0) / reviewsData.length).toFixed(1) : null;
+    
+    let cinebyteAverage = null;
+    if (type === 'tv' && showEpisodeRatings?.length > 0) {
+        cinebyteAverage = (showEpisodeRatings.reduce((acc, curr) => acc + curr.rating, 0) / showEpisodeRatings.length).toFixed(1);
+    } else if (type === 'movie' && reviewsData?.length > 0) {
+        cinebyteAverage = (reviewsData.reduce((acc, curr) => acc + curr.rating, 0) / reviewsData.length).toFixed(1);
+    }
 
     return (
         <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -320,6 +339,74 @@ export default function Movie({ type = 'movie' }) {
 
                 <div style={{ display: 'flex', gap: '3rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
                     <div style={{ flex: 1, minWidth: '0' }}>
+
+                {/* Current Season */}
+                {type === 'tv' && movie.seasons && movie.seasons.length > 0 && (() => {
+                    const currentSeason = movie.seasons.filter(s => s.season_number > 0).pop() || movie.seasons[movie.seasons.length - 1];
+                    if (!currentSeason) return null;
+                    
+                    const seasonRatings = showEpisodeRatings?.filter(r => r.season_number === currentSeason.season_number) || [];
+                    const cinebyteSeasonAvg = seasonRatings.length > 0 
+                        ? (seasonRatings.reduce((acc, curr) => acc + curr.rating, 0) / seasonRatings.length).toFixed(1)
+                        : null;
+
+                    return (
+                        <div style={{ marginTop: '3rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem' }}>
+                                <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.8rem', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: '0.75rem', margin: 0 }}>
+                                    <span style={{ display: 'inline-block', width: '4px', height: '1.5rem', background: 'var(--accent)', borderRadius: '2px' }} />
+                                    ÚLTIMA TEMPORADA
+                                </h2>
+                            </div>
+                            
+                            <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '12px', padding: '1.5rem', display: 'flex', gap: '1.5rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                                <div style={{ flexShrink: 0, width: '130px', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 15px rgba(0,0,0,0.5)', background: 'var(--bg-card)' }}>
+                                    {currentSeason.poster_path ? (
+                                        <img src={`https://image.tmdb.org/t/p/w300${currentSeason.poster_path}`} alt={currentSeason.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    ) : (
+                                        <div style={{ width: '100%', height: '195px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>Sin Imagen</div>
+                                    )}
+                                </div>
+                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: '250px' }}>
+                                    <h3 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>{currentSeason.name}</h3>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', fontSize: '0.9rem', color: 'var(--text)', fontWeight: 500, flexWrap: 'wrap' }}>
+                                        {currentSeason.vote_average > 0 && (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                <span style={{ fontSize: '0.6rem', letterSpacing: '0.1em', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>TMDB</span>
+                                                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--accent)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 700, fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                                                    ★ {(currentSeason.vote_average * 10).toFixed(0)}%
+                                                </div>
+                                            </div>
+                                        )}
+                                        {cinebyteSeasonAvg && (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                <span style={{ fontSize: '0.6rem', letterSpacing: '0.1em', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>CINEBYTE</span>
+                                                <div style={{ background: 'var(--accent)', color: 'white', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 700, fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                                                    ★ {cinebyteSeasonAvg}
+                                                </div>
+                                            </div>
+                                        )}
+                                        {currentSeason.air_date && <span>{currentSeason.air_date.split('-')[0]}</span>}
+                                        {currentSeason.air_date && <span style={{ color: 'var(--text-muted)' }}>&bull;</span>}
+                                        <span>{currentSeason.episode_count} Episodios</span>
+                                    </div>
+                                    {currentSeason.air_date && (
+                                        <p style={{ fontSize: '0.95rem', margin: '0 0 1rem 0' }}>
+                                            La temporada {currentSeason.season_number} se estrenó el {new Date(currentSeason.air_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}.
+                                        </p>
+                                    )}
+                                    <button 
+                                        onClick={() => navigate(`/tv/${id}/seasons`)}
+                                        style={{ alignSelf: 'flex-start', background: 'none', border: 'none', padding: '0', color: 'var(--text)', fontSize: '0.95rem', fontWeight: 700, textDecoration: 'underline', cursor: 'pointer', marginTop: 'auto' }}
+                                        className="hover:text-[var(--accent)] transition-colors"
+                                    >
+                                        Ver todas las temporadas
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })()}
 
                 {/* Cast */}
                 {cast.length > 0 && (
