@@ -6,6 +6,7 @@ import { tmdbService } from '../services/tmdb'
 import { useTheme } from '../context/ThemeContext'
 import { Button } from 'primereact/button'
 import { supabase } from '../lib/supabase'
+import { motion, useScroll, useMotionValueEvent, AnimatePresence } from 'framer-motion'
 
 export default function Navbar() {
   const { user, signOut } = useAuth()
@@ -16,8 +17,14 @@ export default function Navbar() {
   const [searchFocused, setSearchFocused] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
   const searchRef = useRef(null)
   const notifRef = useRef(null)
+
+  const { scrollY } = useScroll()
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    setIsScrolled(latest > 20)
+  })
 
   const { data: searchResults } = useQuery({
     queryKey: ['navbar-search', searchQuery],
@@ -137,16 +144,22 @@ export default function Navbar() {
     deleteNotificationMutation.mutate(notifId)
   }
 
+  const navBg = theme === 'light' 
+    ? (isScrolled ? 'rgba(248,249,250,0.85)' : 'transparent') 
+    : (isScrolled ? 'rgba(10,10,10,0.85)' : 'transparent')
+  const navBorder = isScrolled ? '1px solid var(--border)' : '1px solid transparent'
+  const navBackdrop = isScrolled ? 'blur(12px)' : 'none'
+
   return (
-    <nav style={{
-      borderBottom: '1px solid var(--border)',
-      background: theme === 'light' ? 'rgba(248,249,250,0.95)' : 'rgba(10,10,10,0.95)',
-      backdropFilter: 'blur(10px)',
-      position: 'fixed',
-      top: 0, left: 0, right: 0,
-      zIndex: 50,
-      transition: 'background-color 0.3s, border-color 0.3s'
-    }}>
+    <motion.nav 
+      animate={{ backgroundColor: navBg, borderBottom: navBorder, backdropFilter: navBackdrop }}
+      transition={{ duration: 0.3 }}
+      style={{
+        position: 'fixed',
+        top: 0, left: 0, right: 0,
+        zIndex: 50
+      }}
+    >
       <div style={{
         width: '100%',
         maxWidth: '1530px',
@@ -167,37 +180,46 @@ export default function Navbar() {
         </Link>
 
         {/* Search */}
-        <div ref={searchRef} style={{ flex: 1, maxWidth: '480px', position: 'relative' }}>
-          <form onSubmit={handleSearch}>
-            <input
-              type="text"
-              placeholder="Buscar películas..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => setSearchFocused(true)}
-              style={{
-                width: '130%',
-                background: 'var(--bg-elevated)',
-                border: `2px solid ${searchFocused ? 'var(--accent)' : 'var(--border)'}`,
-                color: 'var(--text)',
-                borderRadius: showDropdown ? '4px 4px 0 0' : '4px',
-                padding: '0.5rem 1rem',
-                fontSize: '1rem',
-                outline: 'none',
-                transition: 'border-color 0.2s, box-shadow 0.2s, background-color 0.3s, color 0.3s',
-                boxShadow: searchFocused ? '0 0 0 2px rgba(229,27,35,0.2)' : 'none',
-              }}
-            />
-          </form>
+        <div ref={searchRef} style={{ flex: 1, display: 'flex', justifyContent: 'center', position: 'relative' }}>
+          <div style={{ width: '100%', maxWidth: '480px', display: 'flex', justifyContent: searchFocused ? 'center' : 'flex-start', position: 'relative' }}>
+            <form onSubmit={handleSearch} style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+              <motion.input
+                type="text"
+                placeholder="Buscar películas..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                animate={{ width: searchFocused ? '100%' : '200px' }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                style={{
+                  background: 'var(--bg-elevated)',
+                  border: `1px solid ${searchFocused ? 'var(--accent)' : 'var(--border)'}`,
+                  color: 'var(--text)',
+                  borderRadius: showDropdown ? '4px 4px 0 0' : '20px',
+                  padding: '0.5rem 1.25rem',
+                  fontSize: '0.9rem',
+                  outline: 'none',
+                  boxShadow: searchFocused ? '0 0 0 2px rgba(229,27,35,0.2)' : 'none',
+                }}
+              />
+            </form>
 
-          {/* Dropdown */}
-          {showDropdown && movies.length > 0 && (
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0, right: 0,
-              background: 'var(--bg-elevated)',
-              border: '1px solid var(--accent)',
+            {/* Dropdown */}
+            <AnimatePresence>
+            {showDropdown && movies.length > 0 && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: searchFocused ? 0 : 'auto',
+                  right: searchFocused ? 0 : 'auto',
+                  width: searchFocused ? '100%' : '200px',
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid var(--accent)',
               borderTop: 'none',
               borderRadius: '0 0 6px 6px',
               overflow: 'hidden',
@@ -264,8 +286,10 @@ export default function Navbar() {
               >
                 VER TODOS LOS RESULTADOS →
               </div>
-            </div>
+            </motion.div>
           )}
+          </AnimatePresence>
+          </div>
         </div>
 
         {/* Nav links */}
@@ -416,6 +440,6 @@ export default function Navbar() {
           )}
         </div>
       </div>
-    </nav>
+    </motion.nav>
   )
 }

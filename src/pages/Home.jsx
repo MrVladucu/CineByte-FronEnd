@@ -10,6 +10,20 @@ import { Button } from 'primereact/button'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useMovieTitles } from '../hooks/useMovieTitles'
+import { motion, useScroll, useTransform } from 'framer-motion'
+
+function ScrollReveal({ children }) {
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+        >
+            {children}
+        </motion.div>
+    )
+}
 
 function NewsSection() {
     const { data, isLoading } = useQuery({
@@ -21,28 +35,31 @@ function NewsSection() {
 
     if (isLoading) {
         return (
-            <section style={{ marginBottom: '4rem' }}>
-                <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.6rem', letterSpacing: '0.08em', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text)' }}>
-                    <span style={{ display: 'inline-block', width: '4px', height: '1.4rem', background: 'var(--accent)', borderRadius: '2px' }} />
-                    NOTICIAS DE CINE
-                </h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-                    {[0, 1, 2, 3].map(i => (
-                        <Skeleton key={i} shape="rectangle" width="100%" height="200px" borderRadius="8px" />
-                    ))}
-                </div>
-            </section>
+            <ScrollReveal>
+                <section style={{ marginBottom: '4rem' }}>
+                    <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.6rem', letterSpacing: '0.08em', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text)' }}>
+                        <span style={{ display: 'inline-block', width: '4px', height: '1.4rem', background: 'var(--accent)', borderRadius: '2px' }} />
+                        NOTICIAS DE CINE
+                    </h2>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                        {[0, 1, 2, 3].map(i => (
+                            <Skeleton key={i} shape="rectangle" width="100%" height="200px" borderRadius="8px" />
+                        ))}
+                    </div>
+                </section>
+            </ScrollReveal>
         )
     }
 
     if (articles.length === 0) return null;
 
     return (
-        <section style={{ marginBottom: '4rem' }}>
-            <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.6rem', letterSpacing: '0.08em', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text)' }}>
-                <span style={{ display: 'inline-block', width: '4px', height: '1.4rem', background: 'var(--accent)', borderRadius: '2px' }} />
-                NOTICIAS DE CINE
-            </h2>
+        <ScrollReveal>
+            <section style={{ marginBottom: '4rem' }}>
+                <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.6rem', letterSpacing: '0.08em', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text)' }}>
+                    <span style={{ display: 'inline-block', width: '4px', height: '1.4rem', background: 'var(--accent)', borderRadius: '2px' }} />
+                    NOTICIAS DE CINE
+                </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
                 {articles.slice(0, 8).map((article, idx) => (
                     <a key={idx} href={article.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
@@ -68,6 +85,7 @@ function NewsSection() {
                 ))}
             </div>
         </section>
+        </ScrollReveal>
     )
 }
 
@@ -92,6 +110,7 @@ function MovieSection({ title, queryKey, queryFn, type = 'movie' }) {
     }
 
     return (
+        <ScrollReveal>
         <section style={{ marginBottom: '3rem', position: 'relative' }}>
             <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.6rem', letterSpacing: '0.08em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text)' }}>
                 <span style={{ display: 'inline-block', width: '4px', height: '1.4rem', background: 'var(--accent)', borderRadius: '2px' }} />
@@ -115,6 +134,7 @@ function MovieSection({ title, queryKey, queryFn, type = 'movie' }) {
                 />
             )}
         </section>
+        </ScrollReveal>
     )
 }
 
@@ -147,6 +167,7 @@ function FriendsReviews() {
     if (!user || isLoading || !reviews || reviews.length === 0) return null
 
     return (
+        <ScrollReveal>
         <section style={{ marginBottom: '4rem' }}>
             <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.6rem', letterSpacing: '0.08em', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text)' }}>
                 <span style={{ display: 'inline-block', width: '4px', height: '1.4rem', background: 'var(--accent)', borderRadius: '2px' }} />
@@ -190,6 +211,86 @@ function FriendsReviews() {
                 })}
             </div>
         </section>
+        </ScrollReveal>
+    )
+}
+
+function HeroItem({ movie, navigate }) {
+    const { scrollY } = useScroll()
+    const y = useTransform(scrollY, [0, 800], [0, 200])
+    
+    const backdropUrl = movie.backdrop_path
+        ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
+        : null
+
+    const title = movie.title || movie.name
+    const mediaType = movie.media_type || 'movie'
+
+    return (
+        <div style={{ position: 'relative', height: '75vh', overflow: 'hidden' }}>
+            {backdropUrl && (
+                <motion.img 
+                    src={backdropUrl} 
+                    alt={title} 
+                    style={{ y, opacity: 0.5, width: '100%', height: '120%', objectFit: 'cover', objectPosition: 'top', position: 'absolute', top: '-10%', left: 0 }} 
+                />
+            )}
+            <div style={{
+                position: 'absolute', inset: 0,
+                background: 'linear-gradient(to right, var(--bg) 30%, transparent 80%), linear-gradient(to top, var(--bg) 0%, transparent 60%)'
+            }} />
+
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end' }}>
+                <div style={{ width: '100%', maxWidth: '1530px', margin: '3rem auto', padding: '0 2rem 5rem 2rem' }}>
+                    <motion.p 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        style={{ color: 'var(--accent)', fontSize: '0.8rem', letterSpacing: '0.2em', fontWeight: 600, marginBottom: '0.75rem' }}
+                    >
+                        TENDENCIA ESTA SEMANA
+                    </motion.p>
+                    <motion.h1 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        style={{ fontFamily: 'Bebas Neue', fontSize: 'clamp(3rem, 7vw, 6rem)', lineHeight: 1, marginBottom: '1rem', maxWidth: '800px', textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
+                    >
+                        {title}
+                    </motion.h1>
+                    <motion.p 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                        style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1rem', lineHeight: 1.6, marginBottom: '2rem', maxWidth: '500px', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
+                    >
+                        {movie.overview?.slice(0, 180)}...
+                    </motion.p>
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                    >
+                        <Button
+                            label="VER DETALLES"
+                            icon="pi pi-play"
+                            onClick={() => navigate(`/${mediaType}/${movie.id}`)}
+                            style={{
+                                background: 'var(--accent)',
+                                borderColor: 'var(--accent)',
+                                padding: '0.8rem 2.5rem',
+                                fontWeight: 700,
+                                fontSize: '0.9rem',
+                                letterSpacing: '0.1em',
+                                boxShadow: '0 4px 15px rgba(229, 27, 35, 0.4)',
+                                borderRadius: '30px'
+                            }}
+                            className="p-button-rounded"
+                        />
+                    </motion.div>
+                </div>
+            </div>
+        </div>
     )
 }
 
@@ -203,50 +304,7 @@ export default function Home() {
     const trendingMovies = trendingData?.data?.results?.slice(0, 10) || []
 
     const heroItemTemplate = (movie) => {
-        const backdropUrl = movie.backdrop_path
-            ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
-            : null
-
-        const title = movie.title || movie.name
-        const mediaType = movie.media_type || 'movie'
-
-        return (
-            <div style={{ position: 'relative', height: '70vh', overflow: 'hidden' }}>
-                {backdropUrl && (
-                    <img src={backdropUrl} alt={title} style={{ opacity: 0.4, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
-                )}
-                <div style={{
-                    position: 'absolute', inset: 0,
-                    background: 'linear-gradient(to right, var(--bg) 30%, transparent 70%), linear-gradient(to top, var(--bg) 0%, transparent 50%)'
-                }} />
-
-                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end' }}>
-                    <div style={{ width: '100%', maxWidth: '1530px', margin: '3rem auto', padding: '0 2rem 3rem 2rem' }}>
-                        <p style={{ color: 'var(--accent)', fontSize: '0.8rem', letterSpacing: '0.2em', fontWeight: 500, marginBottom: '0.5rem' }}>
-                            TENDENCIA ESTA SEMANA
-                        </p>
-                        <h1 style={{ fontFamily: 'Bebas Neue', fontSize: 'clamp(2.5rem, 6vw, 5rem)', lineHeight: 1, marginBottom: '1rem', maxWidth: '600px' }}>
-                            {title}
-                        </h1>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1.5rem', maxWidth: '480px' }}>
-                            {movie.overview?.slice(0, 180)}...
-                        </p>
-                        <Button
-                            label="VER DETALLES"
-                            onClick={() => navigate(`/${mediaType}/${movie.id}`)}
-                            style={{
-                                background: 'var(--accent)',
-                                borderColor: 'var(--accent)',
-                                padding: '0.7rem 2rem',
-                                fontWeight: 600,
-                                fontSize: '0.85rem',
-                                letterSpacing: '0.1em',
-                            }}
-                        />
-                    </div>
-                </div>
-            </div>
-        )
+        return <HeroItem movie={movie} navigate={navigate} />
     }
 
     return (
@@ -254,9 +312,9 @@ export default function Home() {
             <Navbar />
 
             {/* Hero Carousel */}
-            <div style={{ marginTop: '64px' }}>
+            <div style={{ marginTop: '0px' }}>
                 {trendingLoading ? (
-                    <Skeleton width="100%" height="70vh" />
+                    <Skeleton width="100%" height="75vh" />
                 ) : (
                     <Carousel
                         className="hero-carousel"

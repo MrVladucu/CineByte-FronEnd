@@ -11,6 +11,20 @@ import { Button } from 'primereact/button'
 import { Tag } from 'primereact/tag'
 import { Skeleton } from 'primereact/skeleton'
 import { Rating } from 'primereact/rating'
+import { motion, useScroll, useTransform } from 'framer-motion'
+
+function ScrollReveal({ children }) {
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+        >
+            {children}
+        </motion.div>
+    )
+}
 
 export default function Movie({ type = 'movie' }) {
     const { id } = useParams()
@@ -231,9 +245,16 @@ export default function Movie({ type = 'movie' }) {
             <Navbar />
 
             {/* Hero backdrop */}
-            <div style={{ position: 'relative', height: '70vh', marginTop: '64px', overflow: 'hidden' }}>
+            <div style={{ position: 'relative', height: '70vh', marginTop: '0', overflow: 'hidden' }}>
                 {backdropUrl && (
-                    <img src={backdropUrl} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', opacity: 0.4 }} />
+                    <motion.img 
+                        initial={{ scale: 1.1, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 0.4 }}
+                        transition={{ duration: 1.5, ease: "easeOut" }}
+                        src={backdropUrl} 
+                        alt={title} 
+                        style={{ width: '100%', height: '120%', objectFit: 'cover', objectPosition: 'top', position: 'absolute', top: '-10%', left: 0 }} 
+                    />
                 )}
                 <div style={{
                     position: 'absolute', inset: 0,
@@ -247,21 +268,25 @@ export default function Movie({ type = 'movie' }) {
 
                     {/* Poster */}
                     {posterUrl && (
-                        <div style={{ flexShrink: 0, width: '280px', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.8)', border: '1px solid var(--border)' }}>
-                            <img src={posterUrl} alt={title} style={{ width: '100%' }} />
-                        </div>
+                        <motion.div 
+                            initial={{ opacity: 0, y: 50 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+                            style={{ flexShrink: 0, width: '300px', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 30px rgba(0,0,0,0.6)', background: 'var(--bg-card)', border: '1px solid var(--border)' }}
+                        >
+                            <img src={posterUrl} alt={title} style={{ width: '100%', display: 'block' }} />
+                        </motion.div>
                     )}
 
                     {/* Info */}
-                    <div style={{ flex: 1, minWidth: '300px', paddingTop: '2rem' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                            {movie.genres?.map(g => (
-                                <Tag key={g.id} value={g.name} style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 500 }} />
-                            ))}
-                        </div>
-
-                        <h1 style={{ fontFamily: 'Bebas Neue', fontSize: 'clamp(3rem, 6vw, 5rem)', lineHeight: 1, marginBottom: '1rem' }}>
-                            {title}
+                    <motion.div 
+                        initial={{ opacity: 0, x: 30 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.6, ease: "easeOut", delay: 0.4 }}
+                        style={{ flex: 1, minWidth: '300px', marginTop: '2rem' }}
+                    >
+                        <h1 style={{ fontFamily: 'Bebas Neue', fontSize: 'clamp(2.5rem, 5vw, 4.5rem)', lineHeight: 1.1, marginBottom: '0.5rem', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
+                            {title} <span style={{ color: 'var(--text-muted)', fontSize: '0.6em', fontWeight: 'normal' }}>({releaseDate?.split('-')[0]})</span>
                         </h1>
 
                         <div style={{ display: 'flex', gap: '2rem', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap' }}>
@@ -334,10 +359,10 @@ export default function Movie({ type = 'movie' }) {
                                 style={{ fontWeight: 600, fontSize: '0.85rem', letterSpacing: '0.1em', padding: '0.7rem 1.5rem', color: isFavorite ? 'var(--accent)' : 'white', borderColor: isFavorite ? 'var(--accent)' : 'var(--border)' }}
                             />
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '3rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '3rem', alignItems: 'flex-start', flexWrap: 'wrap', marginTop: '2rem' }}>
                     <div style={{ flex: 1, minWidth: '0' }}>
 
                 {/* Current Season */}
@@ -410,31 +435,28 @@ export default function Movie({ type = 'movie' }) {
 
                 {/* Cast */}
                 {cast.length > 0 && (
+                    <ScrollReveal>
                     <div style={{ marginTop: '5rem' }}>
                         <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.8rem', letterSpacing: '0.08em', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                             <span style={{ display: 'inline-block', width: '4px', height: '1.5rem', background: 'var(--accent)', borderRadius: '2px' }} />
                             REPARTO PRINCIPAL
                         </h2>
                         <div style={{ display: 'flex', gap: '2rem', overflowX: 'auto', paddingBottom: '1.5rem', scrollbarWidth: 'none' }}>
-                            {cast.map(person => (
-                                <div key={person.id} onClick={() => navigate(`/actor/${person.id}`)}
-                                     style={{ flexShrink: 0, width: '130px', textAlign: 'center', cursor: 'pointer' }}
-                                     className="hover:opacity-80 transition-opacity">
-                                    <div style={{ width: '110px', height: '110px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto 1rem', background: 'var(--bg-elevated)', border: '2px solid var(--border)', boxShadow: '0 8px 20px rgba(0,0,0,0.4)' }}>
-                                        {person.profile_path
-                                            ? <img src={`https://image.tmdb.org/t/p/w185${person.profile_path}`} alt={person.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem' }}>👤</div>
-                                        }
-                                    </div>
-                                    <p style={{ fontSize: '0.9rem', fontWeight: 700, lineHeight: 1.3, marginBottom: '0.25rem' }}>{person.name}</p>
-                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.3 }}>{person.character}</p>
+                            {cast.slice(0, 10).map(person => (
+                                <div key={person.id} style={{ flexShrink: 0, width: '140px' }}>
+                                    <MovieCard movie={person} type="person" />
+                                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        {person.character}
+                                    </p>
                                 </div>
                             ))}
                         </div>
                     </div>
+                    </ScrollReveal>
                 )}
 
                 {/* Reseñas */}
+                <ScrollReveal>
                 <div style={{ marginTop: '5rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                         <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.8rem', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: '0.75rem', margin: 0 }}>
@@ -510,9 +532,11 @@ export default function Movie({ type = 'movie' }) {
                         </div>
                     )}
                 </div>
+                </ScrollReveal>
 
                 {/* Similar */}
                 {similar.length > 0 && (
+                    <ScrollReveal>
                     <div style={{ marginTop: '4rem', marginBottom: '5rem' }}>
                         <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.6rem', letterSpacing: '0.08em', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                             <span style={{ display: 'inline-block', width: '4px', height: '1.4rem', background: 'var(--accent)', borderRadius: '2px' }} />
@@ -524,6 +548,7 @@ export default function Movie({ type = 'movie' }) {
                             ))}
                         </div>
                     </div>
+                    </ScrollReveal>
                 )}
                 </div>
 

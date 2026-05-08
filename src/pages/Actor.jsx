@@ -5,6 +5,20 @@ import Navbar from '../components/Navbar'
 import MovieCard from '../components/Moviecard'
 import { tmdbService } from '../services/tmdb'
 import { Skeleton } from 'primereact/skeleton'
+import { motion } from 'framer-motion'
+
+function ScrollReveal({ children }) {
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+        >
+            {children}
+        </motion.div>
+    )
+}
 
 export default function Actor() {
     const { id } = useParams()
@@ -97,7 +111,12 @@ export default function Actor() {
             <div style={{ width: '100%', maxWidth: '1400px', margin: '100px auto 0 auto', padding: '0 2rem', display: 'flex', gap: '3rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
                 
                 {/* Main Content (now on the left) */}
-                <div style={{ flex: 1, minWidth: '0' }}>
+                <motion.div 
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+                    style={{ flex: 1, minWidth: '0' }}
+                >
                     <h1 style={{ fontFamily: 'Bebas Neue', fontSize: 'clamp(3rem, 5vw, 4rem)', lineHeight: 1, marginBottom: '1.5rem' }}>
                         {person.name}
                     </h1>
@@ -160,51 +179,55 @@ export default function Actor() {
                     )}
 
                     {actingHistory.length > 0 && (
-                        <div style={{ marginBottom: '5rem' }}>
-                            <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.5rem', letterSpacing: '0.08em', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <ScrollReveal>
+                        <div>
+                            <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.5rem', letterSpacing: '0.08em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <span style={{ display: 'inline-block', width: '4px', height: '1.2rem', background: 'var(--accent)', borderRadius: '2px' }} />
-                                ACTUACIÓN
+                                FILMOGRAFƛA
                             </h2>
-                            
-                            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden' }}>
-                                {actingHistory.map((role, index) => {
-                                    const year = role.release_date ? role.release_date.split('-')[0] : (role.first_air_date ? role.first_air_date.split('-')[0] : '—');
-                                    const title = role.title || role.name;
-                                    const type = role.media_type || 'movie';
-                                    
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', background: 'var(--border)', padding: '1px', borderRadius: '8px', overflow: 'hidden' }}>
+                                {actingHistory.map(credit => {
+                                    const year = (credit.release_date || credit.first_air_date)?.split('-')[0] || '----';
+                                    const title = credit.title || credit.name;
+                                    const role = credit.character || '';
+
                                     return (
-                                        <div key={index} style={{ display: 'flex', alignItems: 'flex-start', padding: '1rem 1.5rem', borderBottom: index < actingHistory.length - 1 ? '1px solid var(--border)' : 'none', transition: 'background 0.2s', cursor: 'pointer' }} className="hover:bg-[rgba(255,255,255,0.02)]" onClick={() => navigate(`/${type}/${role.id}`)}>
-                                            <div style={{ width: '60px', flexShrink: 0, fontWeight: 600, color: 'var(--text-muted)' }}>
-                                                {year}
-                                            </div>
-                                            <div style={{ flexShrink: 0, width: '20px', display: 'flex', justifyContent: 'center', marginTop: '0.2rem', color: 'var(--text-muted)' }}>
-                                                ○
-                                            </div>
-                                            <div style={{ flex: 1, paddingLeft: '1rem' }}>
-                                                <span style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)' }}>{title}</span>
-                                                {role.character && (
-                                                    <span style={{ color: 'var(--text-muted)', fontSize: '0.95rem', display: 'block', marginTop: '0.25rem' }}>
-                                                        como <span style={{ color: 'var(--text)' }}>{role.character}</span>
-                                                    </span>
-                                                )}
-                                                {role.episode_count && (
-                                                    <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', display: 'block', marginTop: '0.25rem' }}>
-                                                        ({role.episode_count} episodio{role.episode_count !== 1 ? 's' : ''})
-                                                    </span>
-                                                )}
+                                        <div key={credit.credit_id} style={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            gap: '1rem', 
+                                            background: 'var(--bg-elevated)', 
+                                            padding: '1rem 1.5rem',
+                                            transition: 'background-color 0.2s',
+                                        }}
+                                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(229, 27, 35, 0.05)'}
+                                        onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
+                                        >
+                                            <span style={{ width: '60px', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-muted)' }}>{year}</span>
+                                            <div style={{ flex: 1 }}>
+                                                <p style={{ margin: 0, fontWeight: 600, fontSize: '0.95rem' }}>{title}</p>
+                                                {role && <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>como {role}</p>}
                                             </div>
                                         </div>
                                     )
                                 })}
                             </div>
                         </div>
+                        </ScrollReveal>
                     )}
-                </div>
+                </motion.div>
 
                 {/* Sidebar */}
-                <div style={{ width: '300px', flexShrink: 0 }}>
+                <motion.div 
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6, ease: "easeOut", delay: 0.4 }}
+                    style={{ width: '300px', flexShrink: 0 }}
+                >
                     {profileUrl ? (
-                        <img 
+                        <motion.img 
+                            whileHover={{ scale: 1.02 }}
+                            transition={{ duration: 0.3 }}
                             src={profileUrl} 
                             alt={person.name} 
                             style={{ width: '100%', borderRadius: '12px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)', marginBottom: '1.5rem', border: '1px solid var(--border)' }} 
@@ -292,7 +315,7 @@ export default function Actor() {
                             </div>
                         )}
                     </div>
-                </div>
+                </motion.div>
 
             </div>
         </div>

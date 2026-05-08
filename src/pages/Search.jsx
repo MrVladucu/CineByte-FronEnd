@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import Navbar from '../components/Navbar'
 import MovieCard from '../components/Moviecard'
 import { tmdbService } from '../services/tmdb'
+import { motion } from 'framer-motion'
 
 export default function Search() {
     const [searchParams] = useSearchParams()
@@ -84,7 +85,12 @@ export default function Search() {
             <div style={{ width: '100%', maxWidth: '1280px', margin: '0 auto', padding: '5rem 2rem 4rem 2rem' }}>
 
                 {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1.5rem' }}>
+                <motion.div 
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1.5rem' }}
+                >
                     <h1 style={{ fontFamily: 'Bebas Neue', fontSize: '2rem', letterSpacing: '0.08em', margin: 0, flexShrink: 1, minWidth: 'fit-content' }}>
                         {isAiMode
                             ? (aiQuery ? `IA: "${aiQuery.toUpperCase()}"` : 'BÚSQUEDA POR VIBE (IA)')
@@ -112,11 +118,16 @@ export default function Search() {
                         <i className={`pi ${isAiMode ? 'pi-sparkles' : 'pi-search'}`} />
                         {isAiMode ? 'MODO IA ACTIVADO' : 'ACTIVAR BÚSQUEDA IA'}
                     </button>
-                </div>
+                </motion.div>
 
                 {/* AI Search box */}
                 {isAiMode && (
-                    <div style={{ marginBottom: '3rem', background: 'rgba(229,27,35,0.05)', border: '1px solid rgba(229,27,35,0.2)', borderRadius: '12px', padding: '2rem', textAlign: 'center' }}>
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                        style={{ marginBottom: '3rem', background: 'rgba(229,27,35,0.05)', border: '1px solid rgba(229,27,35,0.2)', borderRadius: '12px', padding: '2rem', textAlign: 'center' }}
+                    >
                         <p style={{ color: 'var(--text)', fontSize: '1.1rem', marginBottom: '1.5rem' }}>
                             Describe qué tipo de película buscas hoy...
                         </p>
@@ -133,7 +144,7 @@ export default function Search() {
                                     borderRadius: '30px',
                                     padding: '1rem 1.5rem',
                                     paddingRight: '4rem',
-                                    color: 'white',
+                                    color: 'var(--text)',
                                     fontSize: '1rem',
                                     outline: 'none',
                                     transition: 'border-color 0.3s',
@@ -181,7 +192,7 @@ export default function Search() {
                                 Analizando tu búsqueda con IA...
                             </div>
                         )}
-                    </div>
+                    </motion.div>
                 )}
 
                 {/* Results */}
@@ -192,19 +203,35 @@ export default function Search() {
                         ))}
                     </div>
                 ) : allMovies.length === 0 && (isAiMode ? !!aiQuery : true) ? (
-                    <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}
+                    >
                         <p style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎬</p>
                         <p style={{ fontFamily: 'Bebas Neue', fontSize: '1.5rem', letterSpacing: '0.05em' }}>
                             {isAiMode && !aiQuery ? 'DESCRIBE QUÉ QUIERES VER' : 'NO SE ENCONTRARON RESULTADOS'}
                         </p>
-                    </div>
+                    </motion.div>
                 ) : (
                     <>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '1rem' }}>
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.5 }}
+                            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '1rem' }}
+                        >
                             {allMovies.map((movie, i) => (
-                                <MovieCard key={`${movie.id}-${i}`} movie={movie} />
+                                <motion.div 
+                                    key={`${movie.id}-${i}`}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: i * 0.05, duration: 0.4 }}
+                                >
+                                    <MovieCard movie={movie} />
+                                </motion.div>
                             ))}
-                        </div>
+                        </motion.div>
 
                         {/* Loader trigger */}
                         <div ref={loaderRef} style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '2rem' }}>
@@ -225,14 +252,7 @@ export default function Search() {
                         </div>
                     </>
                 )}
-            </div>
-
-            <style>{`
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); opacity: 0.7; }
-          50% { transform: scale(1.4); opacity: 1; }
-        }
-      `}</style>
-        </div>
-    )
+              </div>
+          </div>
+      )
 }

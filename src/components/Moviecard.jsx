@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
+
+const MotionLink = motion.create(Link)
 
 export default function MovieCard({ movie, type = 'movie' }) {
   const [isHovered, setIsHovered] = useState(false)
@@ -17,12 +20,14 @@ export default function MovieCard({ movie, type = 'movie' }) {
 
   return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', minWidth: 0 }}>
-        <Link
+        <MotionLink
             to={linkPath}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            whileHover={{ scale: 1.05, boxShadow: '0 10px 25px rgba(229,27,35,0.4)', borderColor: 'var(--accent)' }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
             style={{
-              display: 'block',
               textDecoration: 'none',
               borderRadius: '6px',
               overflow: 'hidden',
@@ -30,17 +35,16 @@ export default function MovieCard({ movie, type = 'movie' }) {
               border: '1px solid var(--border)',
               aspectRatio: '2/3',
               position: 'relative',
-              transition: 'all 0.3s',
-              transform: isHovered ? 'scale(1.05)' : 'scale(1)',
-              boxShadow: isHovered ? '0 0 20px rgba(229,27,35,0.4)' : 'none',
-              borderColor: isHovered ? 'var(--accent)' : 'var(--border)',
               width: '100%',
+              display: 'flex', // fix for framer motion scaling issues on images sometimes
             }}>
 
           {posterUrl ? (
-              <img
+              <motion.img
                   src={posterUrl}
                   alt={title}
+                  animate={{ scale: isHovered ? 1.05 : 1 }}
+                  transition={{ duration: 0.4 }}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   loading="lazy"
               />
@@ -62,31 +66,33 @@ export default function MovieCard({ movie, type = 'movie' }) {
           )}
 
           {/* Overlay */}
-          <div style={{
-            background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 60%)',
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: '100%',
-            opacity: isHovered ? 1 : 0,
-            transition: 'opacity 0.3s',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'flex-end',
-            padding: '0.75rem',
-            pointerEvents: 'none',
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: isHovered ? 1 : 0, y: isHovered ? 0 : 15 }}
+            transition={{ duration: 0.2 }}
+            style={{
+                background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 70%, transparent 100%)',
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: '50%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-end',
+                padding: '0.75rem',
+                pointerEvents: 'none',
           }}>
             <p style={{ fontFamily: 'Bebas Neue', fontSize: '1rem', letterSpacing: '0.05em', color: 'white', lineHeight: 1.2, marginBottom: '0.25rem' }}>
               {title}
             </p>
             {!isPerson && movie.vote_average > 0 && (
                 <p style={{ color: 'var(--accent)', fontSize: '0.8rem', fontWeight: 500, margin: 0 }}>
-                  ★ {movie.vote_average.toFixed(1)}
+                  ⭐ {movie.vote_average.toFixed(1)}
                 </p>
             )}
-          </div>
-        </Link>
+          </motion.div>
+        </MotionLink>
 
         {/* Contenedor de texto: Altura FIJA de 3rem para que todas las columnas midan igual */}
         <div style={{ marginTop: '0.75rem', padding: '0 0.25rem', height: '3rem', width: '100%', overflow: 'hidden' }}>

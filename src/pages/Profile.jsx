@@ -6,13 +6,17 @@ import { useAuth } from '../context/AuthContext'
 import Navbar from '../components/Navbar'
 import { useMovieTitles } from '../hooks/useMovieTitles'
 import { tmdbService } from '../services/tmdb'
+import { motion } from 'framer-motion'
 
 function StatCard({ value, label }) {
   return (
-      <div style={{ textAlign: 'center', padding: '1rem 1.5rem', background: 'var(--bg-elevated)', borderRadius: '6px', border: '1px solid var(--border)' }}>
+      <motion.div 
+        whileHover={{ y: -5 }}
+        style={{ textAlign: 'center', padding: '1rem 1.5rem', background: 'var(--bg-elevated)', borderRadius: '6px', border: '1px solid var(--border)' }}
+      >
         <p style={{ fontFamily: 'Bebas Neue', fontSize: '2rem', color: 'var(--accent)', lineHeight: 1 }}>{value}</p>
         <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '0.25rem' }}>{label}</p>
-      </div>
+      </motion.div>
   )
 }
 
@@ -259,36 +263,41 @@ export default function Profile() {
     )
   }
 
-  if (!profileData) {
+    if (!profileData) {
+      return (
+          <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+            <Navbar />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '50vh', color: 'var(--text-muted)' }}>Usuario no encontrado</div>
+          </div>
+      )
+    }
+  
     return (
-        <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+        <div style={{ minHeight: '100vh', background: 'var(--bg)', position: 'relative' }}>
+          {topFavoriteMovie?.backdrop_path && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 1 }}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '65vh', overflow: 'hidden', zIndex: 0, pointerEvents: 'none' }}
+              >
+                  <img 
+                      src={`https://image.tmdb.org/t/p/original${topFavoriteMovie.backdrop_path}`} 
+                      alt="" 
+                      style={{ 
+                          width: '100%', 
+                          height: '100%', 
+                          objectFit: 'cover',
+                          objectPosition: 'top',
+                          opacity: 0.35, 
+                          maskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)', 
+                          WebkitMaskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)' 
+                      }} 
+                  />
+              </motion.div>
+          )}
+  
           <Navbar />
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '50vh', color: 'var(--text-muted)' }}>Usuario no encontrado</div>
-        </div>
-    )
-  }
-
-  return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg)', position: 'relative' }}>
-        {topFavoriteMovie?.backdrop_path && (
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '65vh', overflow: 'hidden', zIndex: 0, pointerEvents: 'none' }}>
-                <img 
-                    src={`https://image.tmdb.org/t/p/original${topFavoriteMovie.backdrop_path}`} 
-                    alt="" 
-                    style={{ 
-                        width: '100%', 
-                        height: '100%', 
-                        objectFit: 'cover',
-                        objectPosition: 'top',
-                        opacity: 0.35, 
-                        maskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)', 
-                        WebkitMaskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)' 
-                    }} 
-                />
-            </div>
-        )}
-
-        <Navbar />
 
         <div style={{ width: '100%', maxWidth: '1024px', margin: '0 auto', padding: '5rem 2rem 4rem 2rem', position: 'relative', zIndex: 1 }}>
 
