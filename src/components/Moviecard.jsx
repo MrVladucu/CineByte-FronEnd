@@ -36,7 +36,7 @@ export default function MovieCard({ movie, type = 'movie' }) {
               aspectRatio: '2/3',
               position: 'relative',
               width: '100%',
-              display: 'flex', // fix for framer motion scaling issues on images sometimes
+              display: 'block', // changed from flex to block to fix aspect-ratio ignoring
             }}>
 
           {posterUrl ? (

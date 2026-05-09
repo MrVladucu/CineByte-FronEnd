@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
+import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import Navbar from '../components/Navbar'
 import MovieCard from '../components/Moviecard'
 import { tmdbService } from '../services/tmdb'
@@ -15,7 +16,9 @@ export default function Search() {
     const [page, setPage] = useState(1)
     const [allMovies, setAllMovies] = useState([])
     const [hasMore, setHasMore] = useState(true)
+    const [columns, setColumns] = useState(5)
     const loaderRef = useRef(null)
+    const listRef = useRef(null)
 
     useEffect(() => {
         setSearch(queryParam)
@@ -77,6 +80,27 @@ export default function Search() {
         if (loaderRef.current) observer.observe(loaderRef.current)
         return () => observer.disconnect()
     }, [loadMore])
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (listRef.current) {
+                const width = listRef.current.offsetWidth
+                const newColumns = Math.max(1, Math.floor(width / 160)) // 150px + 10px gap
+                setColumns(newColumns)
+            }
+        }
+        handleResize()
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
+
+    const rows = Math.ceil(allMovies.length / columns)
+
+    const virtualizer = useWindowVirtualizer({
+        count: rows,
+        estimateSize: () => 400, // Approximate height of a movie card
+        overscan: 3,
+    })
 
     return (
         <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -215,23 +239,43 @@ export default function Search() {
                     </motion.div>
                 ) : (
                     <>
-                        <motion.div 
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.5 }}
-                            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '1rem' }}
-                        >
-                            {allMovies.map((movie, i) => (
-                                <motion.div 
-                                    key={`${movie.id}-${i}`}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: i * 0.05, duration: 0.4 }}
-                                >
-                                    <MovieCard movie={movie} />
-                                </motion.div>
-                            ))}
-                        </motion.div>
+                        <div ref={listRef} style={{ width: '100%', position: 'relative', height: `${virtualizer.getTotalSize()}px` }}>
+                            {virtualizer.getVirtualItems().map((virtualRow) => {
+                                const rowStart = virtualRow.index * columns;
+                                const rowMovies = allMovies.slice(rowStart, rowStart + columns);
+                                
+                                return (
+                                    <div
+                                        key={virtualRow.index}
+                                        data-index={virtualRow.index}
+                                        ref={virtualizer.measureElement}
+                                        style={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            width: '100%',
+                                            transform: `translateY(${virtualRow.start}px)`,
+                                            display: 'grid',
+                                            gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+                                            gap: '1rem',
+                                            paddingBottom: '1rem'
+                                        }}
+                                    >
+                                        {rowMovies.map((movie, i) => (
+                                            <motion.div 
+                                                key={`${movie.id}-${virtualRow.index}-${i}`}
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: i * 0.05, duration: 0.4 }}
+                                                style={{ height: '100%', minWidth: 0 }}
+                                            >
+                                                <MovieCard movie={movie} />
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                );
+                            })}
+                        </div>
 
                         {/* Loader trigger */}
                         <div ref={loaderRef} style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '2rem' }}>
