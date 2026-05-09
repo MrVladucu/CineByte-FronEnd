@@ -64,9 +64,18 @@ function NewsSection() {
                 {articles.slice(0, 8).map((article, idx) => (
                     <a key={idx} href={article.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
                         <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden', transition: 'transform 0.2s, box-shadow 0.2s', height: '100%', display: 'flex', flexDirection: 'column' }} onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)'; e.currentTarget.style.borderColor = 'var(--accent)'; }} onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'var(--border)'; }}>
-                            <div style={{ width: '100%', height: '160px', background: 'var(--border)', position: 'relative' }}>
+                            <div style={{ width: '100%', height: '160px', background: 'var(--bg)', borderBottom: '1px solid var(--border)', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'var(--text-muted)', opacity: 0.5, zIndex: 0 }}>
+                                    <i className="pi pi-file" style={{ fontSize: '2.5rem' }}></i>
+                                </div>
                                 {article.image && (
-                                    <img src={article.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+                                    <img 
+                                        src={article.image} 
+                                        alt="" 
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0, zIndex: 1 }} 
+                                        loading="lazy" 
+                                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                    />
                                 )}
                             </div>
                             <div style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
