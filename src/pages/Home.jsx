@@ -32,26 +32,15 @@ function NewsSection() {
     })
 
     const articles = data?.data?.articles || []
+    
+    // Filtrar noticias con títulos duplicados
+    const uniqueArticles = articles.filter((article, index, self) => 
+        index === self.findIndex((t) => t.title === article.title)
+    );
 
-    if (isLoading) {
-        return (
-            <ScrollReveal>
-                <section style={{ marginBottom: '4rem' }}>
-                    <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.6rem', letterSpacing: '0.08em', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text)' }}>
-                        <span style={{ display: 'inline-block', width: '4px', height: '1.4rem', background: 'var(--accent)', borderRadius: '2px' }} />
-                        NOTICIAS DE CINE
-                    </h2>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-                        {[0, 1, 2, 3].map(i => (
-                            <Skeleton key={i} shape="rectangle" width="100%" height="200px" borderRadius="8px" />
-                        ))}
-                    </div>
-                </section>
-            </ScrollReveal>
-        )
-    }
+    if (uniqueArticles.length === 0) return null;
 
-    if (articles.length === 0) return null;
+    const displayCount = uniqueArticles.length >= 8 ? 8 : (uniqueArticles.length >= 4 ? 4 : uniqueArticles.length);
 
     return (
         <ScrollReveal>
@@ -61,7 +50,7 @@ function NewsSection() {
                     NOTICIAS DE CINE
                 </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-                {articles.slice(0, 8).map((article, idx) => (
+                {uniqueArticles.slice(0, displayCount).map((article, idx) => (
                     <a key={idx} href={article.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
                         <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden', transition: 'transform 0.2s, box-shadow 0.2s', height: '100%', display: 'flex', flexDirection: 'column' }} onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)'; e.currentTarget.style.borderColor = 'var(--accent)'; }} onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'var(--border)'; }}>
                             <div style={{ width: '100%', height: '160px', background: 'var(--bg)', borderBottom: '1px solid var(--border)', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
@@ -271,7 +260,7 @@ function HeroItem({ movie, navigate }) {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4 }}
-                        style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1rem', lineHeight: 1.6, marginBottom: '2rem', maxWidth: '500px', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
+                        style={{ color: 'var(--text)', fontSize: '1rem', lineHeight: 1.6, marginBottom: '2rem', maxWidth: '500px', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
                     >
                         {movie.overview?.slice(0, 180)}...
                     </motion.p>

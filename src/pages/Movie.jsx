@@ -349,14 +349,14 @@ export default function Movie({ type = 'movie' }) {
                                 icon={isInWatchlist ? 'pi pi-check' : 'pi pi-plus'}
                                 onClick={toggleWatchlist}
                                 outlined={!isInWatchlist}
-                                style={{ fontWeight: 600, fontSize: '0.85rem', letterSpacing: '0.1em', padding: '0.7rem 1.5rem', color: isInWatchlist ? 'var(--accent)' : 'white', borderColor: isInWatchlist ? 'var(--accent)' : 'var(--border)' }}
+                                style={{ fontWeight: 600, fontSize: '0.85rem', letterSpacing: '0.1em', padding: '0.7rem 1.5rem', color: isInWatchlist ? 'var(--accent)' : 'var(--text)', borderColor: isInWatchlist ? 'var(--accent)' : 'var(--border)' }}
                             />
                             <Button 
                                 label="FAVORITA" 
                                 icon={isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'}
                                 onClick={toggleFavorite}
                                 outlined={!isFavorite}
-                                style={{ fontWeight: 600, fontSize: '0.85rem', letterSpacing: '0.1em', padding: '0.7rem 1.5rem', color: isFavorite ? 'var(--accent)' : 'white', borderColor: isFavorite ? 'var(--accent)' : 'var(--border)' }}
+                                style={{ fontWeight: 600, fontSize: '0.85rem', letterSpacing: '0.1em', padding: '0.7rem 1.5rem', color: isFavorite ? 'var(--accent)' : 'var(--text)', borderColor: isFavorite ? 'var(--accent)' : 'var(--border)' }}
                             />
                         </div>
                     </motion.div>
