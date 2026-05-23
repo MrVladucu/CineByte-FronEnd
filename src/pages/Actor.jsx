@@ -183,7 +183,7 @@ export default function Actor() {
                         <div>
                             <h2 style={{ fontFamily: 'Bebas Neue', fontSize: '1.5rem', letterSpacing: '0.08em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <span style={{ display: 'inline-block', width: '4px', height: '1.2rem', background: 'var(--accent)', borderRadius: '2px' }} />
-                                FILMOGRAFƛA
+                                FILMOGRAFIA
                             </h2>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', background: 'var(--border)', padding: '1px', borderRadius: '8px', overflow: 'hidden' }}>
                                 {actingHistory.map(credit => {
