@@ -54,4 +54,10 @@ getPersonDetails: (id) =>
 
 getPersonCombinedCredits: (id) =>
   api.get(`/api/tmdb/person/${id}/combined_credits`),
+
+  getMovieRecommendations: (id) =>
+      api.get(`/api/tmdb/movies/${id}/recommendations`),
+
+  getTvRecommendations: (id) =>
+      api.get(`/api/tmdb/tv/${id}/recommendations`),
 }

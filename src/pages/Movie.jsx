@@ -50,8 +50,10 @@ export default function Movie({ type = 'movie' }) {
     })
 
     const { data: similarData } = useQuery({
-        queryKey: [`${type}-similar`, id],
-        queryFn: () => type === 'tv' ? tmdbService.getSimilarTv(id) : tmdbService.getSimilarMovies(id),
+        queryKey: [`${type}-recommendations`, id],
+        queryFn: () => type === 'tv'
+            ? tmdbService.getTvRecommendations(id)
+            : tmdbService.getMovieRecommendations(id),
     })
 
     const { data: watchlistData } = useQuery({
